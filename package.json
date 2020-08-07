@@ -1,6 +1,6 @@
 {
   "name": "react-model-hooks",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "react-model-hooks",
   "main": "dist/react-model-hooks.cjs.js",
   "module": "dist/react-model-hooks.esm.js",

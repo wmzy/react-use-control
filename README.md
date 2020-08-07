@@ -1,19 +1,64 @@
-[![Build Status](https://travis-ci.org/wmzy/lib-starter.svg?branch=master)](https://travis-ci.org/wmzy/lib-starter)
-[![Coverage Status](https://coveralls.io/repos/github/wmzy/lib-starter/badge.svg?branch=master)](https://coveralls.io/github/wmzy/lib-starter?branch=master)
-[![install size](https://packagephobia.now.sh/badge?p=lib-starter)](https://packagephobia.now.sh/result?p=lib-starter)
-# lib-starter
+[![Build Status](https://travis-ci.org/wmzy/react-model-hooks.svg?branch=master)](https://travis-ci.org/wmzy/react-model-hooks)
+[![Coverage Status](https://coveralls.io/repos/github/wmzy/react-model-hooks/badge.svg?branch=master)](https://coveralls.io/github/wmzy/react-model-hooks?branch=master)
+[![install size](https://packagephobia.now.sh/badge?p=react-model-hooks)](https://packagephobia.now.sh/result?p=react-model-hooks)
+# react-model-hooks
 
-> Library starter
+> Split state from view.
+
+## Install
+
+```bash
+npm install react-model-hooks
+```
 
 ## Usage
 
-```bash
-bash <(curl -sL https://git.io/lib-starter)
+```jsx
+import * as React from 'react';
+import useModel from 'react-model-hooks';
+
+function useCounter(counterModel) {
+  const [model, useProp] = useModel(
+    counterModel ? counterModel.model : undefined
+  );
+
+  return {
+    model,
+    useStep(step) {
+      return useProp('step', step);
+    },
+    useNumber(num) {
+      return useProp('num', num);
+    }
+  };
+}
+
+function Counter({model}) {
+  const m = useCounter(model);
+  const [step, setStep] = m.useStep(1);
+  const [num, setNum] = m.useNumber(0);
+
+  return (
+    <div>
+      <span> {num} </span>
+      <button onClick={() => setNum((n) => n + step)}>add {step}</button>
+      <button onClick={() => setStep((n) => n + 1)}>add step</button>
+    </div>
+  );
+}
+
+export default function App() {
+  const counter = useCounter();
+  const [, setNum] = counter.useNumber(1);
+
+  return (
+    <div>
+      <Counter model={counter} />
+      <button onClick={() => setNum(1)}>Reset</button>
+    </div>
+  );
+}
 ```
-
-## Compatibility Note
-
-This lib support [these browsers or devices](.broserslistrc) with [these methods or APIs](.eslintrc.js#L27) pollyfilled.
 
 ## Workflow
 
@@ -33,8 +78,3 @@ npm run commit
 # publish
 npm publish
 ```
-
-## TODO
-
-* [ ] github pages
-* [ ] generator

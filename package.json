@@ -1,0 +1,91 @@
+{
+  "name": "react-model-hooks",
+  "version": "0.0.0",
+  "description": "react-model-hooks",
+  "main": "dist/react-model-hooks.cjs.js",
+  "module": "dist/react-model-hooks.esm.js",
+  "browser": "dist/react-model-hooks.esm.js",
+  "unpkg": "dist/react-model-hooks.umd.min.js",
+  "jsdelivr": "dist/react-model-hooks.umd.min.js",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "commit": "lint-staged && git-cz -n",
+    "build": "rollup -c",
+    "prepublishOnly": "rimraf dist && npm run build",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "lint": "eslint --fix src test *.js",
+    "test": "cross-env NODE_ENV=test nyc mocha -r @babel/register --recursive --exclude mock --exclude fixtures -r should -r should-sinon",
+    "start": "npm test -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wmzy/react-model-hooks.git"
+  },
+  "keywords": [
+    "react",
+    "model",
+    "hooks"
+  ],
+  "author": "wmzy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wmzy/react-model-hooks/issues"
+  },
+  "homepage": "https://github.com/wmzy/react-model-hooks",
+  "engines": {
+    "node": ">=8.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
+    "@babel/register": "^7.10.5",
+    "babel-eslint": "^10.1.0",
+    "commitizen": "^4.1.2",
+    "coveralls": "^3.1.0",
+    "cross-env": "^7.0.2",
+    "cz-conventional-changelog": "^3.2.0",
+    "eslint": "^7.5.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-builtin-compat": "0.0.2",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-mocha": "^7.0.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
+    "mocha": "^8.0.1",
+    "nyc": "^15.1.0",
+    "prettier": "^2.0.5",
+    "react": "^16.13.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.23.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-terser": "^6.1.0",
+    "should": "^13.2.3",
+    "should-sinon": "0.0.6",
+    "sinon": "^9.0.2"
+  },
+  "lint-staged": {
+    "*.js": [
+      "cross-env NODE_ENV=production eslint --fix",
+      "git add"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "peerDependencies": {
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0"
+  }
+}

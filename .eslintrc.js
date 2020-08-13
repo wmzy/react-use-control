@@ -6,6 +6,9 @@ module.exports = {
     commonjs: true,
     es6: true
   },
+  globals: {
+    __DEV__: 'readonly'
+  },
   plugins: ['prettier', 'builtin-compat'],
   extends: ['airbnb-base', 'eslint-config-prettier'],
   rules: {

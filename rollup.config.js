@@ -1,5 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import {terser} from 'rollup-plugin-terser';
+import replace from '@rollup/plugin-replace';
 import pkg from './package.json';
 
 const banner = `
@@ -16,6 +17,9 @@ export default {
   plugins: [
     babel({
       exclude: ['node_modules/**']
+    }),
+    replace({
+      __DEV__: process.env.NODE_ENV !== 'production'
     })
   ],
   output: [

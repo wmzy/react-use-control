@@ -10,51 +10,43 @@ export function isModel(obj) {
 
 // TODO: 同一个组件内同一个 model 的 同一个 prop 调用多次
 // TODO: 同一个 model 传给多个 组件实例
-export function useProp(model, prop, initial, transform) {
+export function useProp(model, prop, initial) {
   // if (__DEV__) {
   //   // eslint-disable-next-line no-prototype-builtins
   //   if (React.useRef(model.hasOwnProperty(prop)).current)
   //     throw new Error('Could not use prop multiple times.');
   // }
 
-  const isSource = React.useRef(!model[prop]).current;
-  if (isSource) {
-    const state = React.useState(initial);
-    model[prop] = transform ? transform(state) : state;
-    return state;
-  }
-
-  const state = Object.getPrototypeOf(model)[prop];
-  if (transform) {
-    model[prop] = transform(state);
-  }
-  return state;
+  if (!model) return React.useState(initial);
+  const {state, transform} = model[prop] || {};
+  const isSource = React.useRef(!state).current;
+  const s = isSource ? React.useState(initial) : state;
+  return transform ? transform(s) : s;
 }
 
-export default function useModel(model) {
-  const modelRef = React.useRef(
-    isModel(model) ? Object.create(model) : {[modelType]: true}
-  );
+export default function useModel(model, transforms) {
+  const m = isModel(model) ? Object.create(model) : {[modelType]: true};
+  // eslint-disable-next-line no-unused-expressions
+  transforms &&
+    Object.keys(transforms).forEach((prop) => {
+      const t = transforms[prop];
+      const {state, transform} = m[prop] || {};
+      m[prop] = {state, transform: transform ? (s) => transform(t(s)) : t};
+    });
 
   return [
-    modelRef.current,
-    function $useProp(prop, initial, transform) {
-      return useProp(modelRef.current, prop, initial, transform);
+    m,
+    function useProp$(prop, initial) {
+      const state = useProp(model, prop, initial);
+      m[prop] = {transform: transforms && transforms[prop], state};
+      return state;
     }
   ];
 }
 
 export function usePropHook(model) {
-  if (!model) {
-    return function useProp(prop, initial) {
-      return React.useState(initial);
-    };
-  }
-
-  return function useProp(prop, initial) {
-    return React.useRef(model[prop]).current
-      ? model[prop]
-      : React.useState(initial);
+  return function useProp$(prop, initial) {
+    return useProp(model, prop, initial);
   };
 }
 
@@ -87,4 +79,4 @@ export function createModel(props) {
   };
 }
 
-// TODO: useTransform useWatch
+// TODO:  useWatch

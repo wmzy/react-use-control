@@ -24,6 +24,7 @@ module.exports = {
   settings: {
     'builtin-compat-ignore': [
       // App which dependence this lib should pollyfill these methods:
+      'entries',
       'assign',
       'startsWith'
     ]

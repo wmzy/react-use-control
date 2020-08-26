@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 
-const modelType = Symbol('modelType');
+const modelSymbol = Symbol('model');
 
 export function isModel(obj) {
-  return obj && obj[modelType];
+  return obj && obj[modelSymbol];
 }
 
 // TODO: 同一个组件内同一个 model 的 同一个 prop 调用多次
@@ -24,15 +24,23 @@ export function useProp(model, prop, initial) {
   return transform ? transform(s) : s;
 }
 
+/**
+ * Create or reuse a model
+ * @param {object} [model] state store
+ * @param {object | array} [transforms] state transforms
+ * @return {array} model and useProp
+ */
 export default function useModel(model, transforms) {
-  const m = isModel(model) ? Object.create(model) : {[modelType]: true};
-  // eslint-disable-next-line no-unused-expressions
-  transforms &&
-    Object.keys(transforms).forEach((prop) => {
-      const t = transforms[prop];
+  const m = isModel(model) ? Object.create(model) : {[modelSymbol]: true};
+  if (transforms) {
+    (Array.isArray(transforms)
+      ? transforms
+      : Object.entries(transforms)
+    ).forEach(([prop, t]) => {
       const {state, transform} = m[prop] || {};
       m[prop] = {state, transform: transform ? (s) => transform(t(s)) : t};
     });
+  }
 
   return [
     m,
@@ -44,7 +52,7 @@ export default function useModel(model, transforms) {
   ];
 }
 
-export function usePropHook(model) {
+export function useModelProp(model) {
   return function useProp$(prop, initial) {
     return useProp(model, prop, initial);
   };
@@ -54,29 +62,11 @@ export function usePick(model, props) {
   const [m, useProp] = useModel();
   if (model) {
     props.forEach((prop) => {
-      const [from, to] = typeof prop === 'string' ? [prop, prop] : prop;
+      const [from, to] = Array.isArray(prop) ? prop : [prop, prop];
       m[to || from] = model[from];
     });
   }
   return [m, useProp];
-}
-
-export function createModel(props) {
-  return function $useModel($model) {
-    const [model, useProp] = useModel($model);
-
-    return {
-      model,
-      ...props.reduce(
-        (pre, cur) => ({
-          ...cur,
-          [`use${pre}`]: (initial, transform) =>
-            useProp(pre, initial, transform)
-        }),
-        {}
-      )
-    };
-  };
 }
 
 // TODO:  useWatch

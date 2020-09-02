@@ -1,8 +1,8 @@
 import * as React from 'react';
-import useModel, {usePropHook} from '../src';
+import useModel, {useModelProp} from '../src';
 
 function Counter({model}) {
-  const useProp = usePropHook(model);
+  const useProp = useModelProp(model);
   const [step, setStep] = useProp('step', 1);
   const [num, setNum] = useProp('num', 0);
 
@@ -28,7 +28,7 @@ function ResetCounter({model}) {
   );
 }
 
-export function ResetDoubleCounter() {
+export function ResetCounterTo() {
   const [model, useProp] = useModel();
   const [, setInitialValue] = useProp('initialValue', 2);
 

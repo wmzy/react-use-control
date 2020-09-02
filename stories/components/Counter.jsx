@@ -1,26 +1,13 @@
 import * as React from 'react';
-import useModel from '../../src';
+import {useModelProp} from '../../src';
 
-export function useCounter(counterModel) {
-  const [model, useProp] = useModel(
-    counterModel ? counterModel.model : undefined
-  );
-
-  return {
-    model,
-    useStep(step) {
-      return useProp('step', step);
-    },
-    useNumber(num) {
-      return useProp('num', num);
-    }
-  };
-}
+export const $step = Symbol('step');
+export const $num = Symbol('num');
 
 export default function Counter({model}) {
-  const m = useCounter(model);
-  const [step, setStep] = m.useStep(1);
-  const [num, setNum] = m.useNumber(0);
+  const useProp = useModelProp(model);
+  const [step, setStep] = useProp($step, 1);
+  const [num, setNum] = useProp($num, 0);
 
   return (
     <div>

@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {useModelProp} from '../../src';
+import {useControlProp} from '../../src';
 
 export const $step = Symbol('step');
 export const $num = Symbol('num');
 
-export default function Counter({model}) {
-  const useProp = useModelProp(model);
+export default function Counter({control}) {
+  const useProp = useControlProp(control);
   const [step, setStep] = useProp($step, 1);
   const [num, setNum] = useProp($num, 0);
 

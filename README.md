@@ -1,29 +1,29 @@
-[![Build Status](https://travis-ci.org/wmzy/react-model-hooks.svg?branch=master)](https://travis-ci.org/wmzy/react-model-hooks)
-[![Coverage Status](https://coveralls.io/repos/github/wmzy/react-model-hooks/badge.svg?branch=master)](https://coveralls.io/github/wmzy/react-model-hooks?branch=master)
-[![install size](https://packagephobia.now.sh/badge?p=react-model-hooks)](https://packagephobia.now.sh/result?p=react-model-hooks)
-# react-model-hooks
+[![Build Status](https://travis-ci.org/wmzy/react-use-control.svg?branch=master)](https://travis-ci.org/wmzy/react-use-control)
+[![Coverage Status](https://coveralls.io/repos/github/wmzy/react-use-control/badge.svg?branch=master)](https://coveralls.io/github/wmzy/react-use-control?branch=master)
+[![install size](https://packagephobia.now.sh/badge?p=react-use-control)](https://packagephobia.now.sh/result?p=react-use-control)
+# react-use-control
 
 > Split state from view.
 
 ## Install
 
 ```bash
-npm install react-model-hooks
+npm install react-use-control
 ```
 
 ## Usage
 
 ```jsx
 import * as React from 'react';
-import useModel from 'react-model-hooks';
+import useControl from 'react-use-control';
 
-function useCounter(counterModel) {
-  const [model, useProp] = useModel(
-    counterModel ? counterModel.model : undefined
+function useCounter(counterControl) {
+  const [control, useProp] = useControl(
+    counterControl ? counterControl.control : undefined
   );
 
   return {
-    model,
+    control,
     useStep(step) {
       return useProp('step', step);
     },
@@ -33,8 +33,8 @@ function useCounter(counterModel) {
   };
 }
 
-function Counter({model}) {
-  const m = useCounter(model);
+function Counter({control}) {
+  const m = useCounter(control);
   const [step, setStep] = m.useStep(1);
   const [num, setNum] = m.useNumber(0);
 
@@ -53,7 +53,7 @@ export default function App() {
 
   return (
     <div>
-      <Counter model={counter} />
+      <Counter control={counter} />
       <button onClick={() => setNum(1)}>Reset</button>
     </div>
   );

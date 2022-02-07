@@ -1,8 +1,8 @@
 import * as React from 'react';
-import useModel, {useModelProp} from '../src';
+import useControl, {useControlProp} from '../src';
 
-function Counter({model}) {
-  const useProp = useModelProp(model);
+function Counter({control}) {
+  const useProp = useControlProp(control);
   const [step, setStep] = useProp('step', 1);
   const [num, setNum] = useProp('num', 0);
 
@@ -15,26 +15,26 @@ function Counter({model}) {
   );
 }
 
-function ResetCounter({model}) {
-  const [m, useProp] = useModel(model);
+function ResetCounter({control}) {
+  const [m, useProp] = useControl(control);
   const [, setNum] = useProp('num', 1);
   const [initialValue, setInitialValue] = useProp('initialValue', 2);
 
   return (
     <div>
-      <Counter model={m} />
+      <Counter control={m} />
       <button onClick={() => setNum(initialValue)}>Reset</button>
     </div>
   );
 }
 
 export function ResetCounterTo() {
-  const [model, useProp] = useModel();
+  const [control, useProp] = useControl();
   const [, setInitialValue] = useProp('initialValue', 2);
 
   return (
     <div>
-      <ResetCounter model={model} />
+      <ResetCounter control={control} />
       <label>
         reset to
       <input

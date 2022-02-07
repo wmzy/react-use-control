@@ -1,17 +1,17 @@
 import {renderHook, act} from '@testing-library/react-hooks';
-import useModel, {useModelProp} from '../src';
+import useControl, {useControlProp} from '../src';
 
-describe('useModelProp', function () {
+describe('useControlProp', function () {
   it('should reuse count state', function () {
     const {result, rerender} = renderHook(() => {
-      const [model, useProp] = useModel();
+      const [control, useProp] = useControl();
       const [count, setCount] = useProp('count', 0);
-      return {model, count, setCount};
+      return {control, count, setCount};
     });
     result.current.count.should.equal(0);
 
     const {result: childResult, rerender: childRerender} = renderHook(() => {
-      const useProp = useModelProp(result.current.model);
+      const useProp = useControlProp(result.current.control);
       const [count, setCount] = useProp('count', 1);
       return {count, setCount};
     });

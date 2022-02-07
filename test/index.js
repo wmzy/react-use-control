@@ -1,17 +1,17 @@
 import {renderHook, act} from '@testing-library/react-hooks';
-import useModel from '../src';
+import useControl from '../src';
 
-describe('useModel', function () {
+describe('useControl', function () {
   it('should reuse count state', function () {
     const {result, rerender} = renderHook(() => {
-      const [model, useProp] = useModel();
+      const [control, useProp] = useControl();
       const [count, setCount] = useProp('count', 0);
-      return {model, count, setCount};
+      return {control, count, setCount};
     });
     result.current.count.should.equal(0);
 
     const {result: childResult, rerender: childRerender} = renderHook(() => {
-      const [, useProp] = useModel(result.current.model);
+      const [, useProp] = useControl(result.current.control);
       const [count, setCount] = useProp('count', 1);
       return {count, setCount};
     });
@@ -39,7 +39,7 @@ describe('useModel', function () {
 
   it('should support transforms', function () {
     const {result} = renderHook(() => {
-      const [model] = useModel(undefined, {
+      const [control] = useControl(undefined, {
         count: ([count, setCount]) => [
           count,
           (c) =>
@@ -48,11 +48,11 @@ describe('useModel', function () {
               : setCount(c * 2)
         ]
       });
-      return {model};
+      return {control};
     });
 
     const {result: childResult} = renderHook(() => {
-      const [, useProp] = useModel(result.current.model);
+      const [, useProp] = useControl(result.current.control);
       const [count, setCount] = useProp('count', 1);
       return {count, setCount};
     });
@@ -69,14 +69,14 @@ describe('useModel', function () {
   it('should support transforms of array', function () {
     const countProp = Symbol('count');
     const {result} = renderHook(() => {
-      const [model] = useModel(undefined, [
+      const [control] = useControl(undefined, [
         [countProp, ([count, setCount]) => [count * 2, setCount]]
       ]);
-      return {model};
+      return {control};
     });
 
     const {result: childResult} = renderHook(() => {
-      const [, useProp] = useModel(result.current.model);
+      const [, useProp] = useControl(result.current.control);
       const [count, setCount] = useProp(countProp, 1);
       return {count, setCount};
     });

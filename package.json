@@ -1,12 +1,12 @@
 {
-  "name": "react-model-hooks",
+  "name": "react-use-control",
   "version": "0.1.0",
-  "description": "react-model-hooks",
-  "main": "dist/react-model-hooks.cjs.js",
-  "module": "dist/react-model-hooks.esm.js",
-  "browser": "dist/react-model-hooks.esm.js",
-  "unpkg": "dist/react-model-hooks.umd.min.js",
-  "jsdelivr": "dist/react-model-hooks.umd.min.js",
+  "description": "react-use-control",
+  "main": "dist/react-use-control.cjs.js",
+  "module": "dist/react-use-control.esm.js",
+  "browser": "dist/react-use-control.esm.js",
+  "unpkg": "dist/react-use-control.umd.min.js",
+  "jsdelivr": "dist/react-use-control.umd.min.js",
   "files": [
     "dist"
   ],
@@ -27,19 +27,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wmzy/react-model-hooks.git"
+    "url": "git+https://github.com/wmzy/react-use-control.git"
   },
   "keywords": [
     "react",
-    "model",
+    "control",
     "hooks"
   ],
   "author": "wmzy",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wmzy/react-model-hooks/issues"
+    "url": "https://github.com/wmzy/react-use-control/issues"
   },
-  "homepage": "https://github.com/wmzy/react-model-hooks",
+  "homepage": "https://github.com/wmzy/react-use-control",
   "engines": {
     "node": ">=8.3.0"
   },
@@ -103,7 +103,7 @@
     }
   },
   "peerDependencies": {
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0"
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
   }
 }

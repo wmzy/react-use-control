@@ -1,37 +1,38 @@
-// TODO: combine multiple models
+// TODO: combine multiple controls
 
 import * as React from 'react';
 
-const modelSymbol = Symbol('model');
+const controlSymbol = Symbol('control');
 
-export function isModel(obj) {
-  return obj && obj[modelSymbol];
+export function isControl(obj) {
+  return obj && obj[controlSymbol];
 }
 
-// TODO: 同一个组件内同一个 model 的 同一个 prop 调用多次
-// TODO: 同一个 model 传给多个 组件实例
-export function useProp(model, prop, initial) {
+// TODO: 同一个 control 传给多个 组件实例
+export function useProp(control, prop, initial) {
   // if (__DEV__) {
   //   // eslint-disable-next-line no-prototype-builtins
-  //   if (React.useRef(model.hasOwnProperty(prop)).current)
+  //   if (React.useRef(control.hasOwnProperty(prop)).current)
   //     throw new Error('Could not use prop multiple times.');
   // }
 
-  if (!model) return React.useState(initial);
-  const {state, transform} = model[prop] || {};
+  if (!control) return React.useState(initial);
+  const {state, transform} = control[prop] || {};
   const isSource = React.useRef(!state).current;
   const s = isSource ? React.useState(initial) : state;
   return transform ? transform(s) : s;
 }
 
 /**
- * Create or reuse a model
- * @param {object} [model] state store
+ * Create or reuse a control
+ * @param {object} [control] state store
  * @param {object | array} [transforms] state transforms
- * @return {array} model and useProp
+ * @return {array} control and useProp
  */
-export default function useModel(model, transforms) {
-  const m = isModel(model) ? Object.create(model) : {[modelSymbol]: true};
+export default function useControl(control, transforms) {
+  const m = isControl(control)
+    ? Object.create(control)
+    : {[controlSymbol]: true};
   if (transforms) {
     (Array.isArray(transforms)
       ? transforms
@@ -45,25 +46,25 @@ export default function useModel(model, transforms) {
   return [
     m,
     function useProp$(prop, initial) {
-      const state = useProp(model, prop, initial);
+      const state = useProp(control, prop, initial);
       m[prop] = {transform: transforms && transforms[prop], state};
       return state;
     }
   ];
 }
 
-export function useModelProp(model) {
+export function useControlProp(control) {
   return function useProp$(prop, initial) {
-    return useProp(model, prop, initial);
+    return useProp(control, prop, initial);
   };
 }
 
-export function usePick(model, props) {
-  const [m, useProp] = useModel();
-  if (model) {
+export function usePick(control, props) {
+  const [m, useProp] = useControl();
+  if (control) {
     props.forEach((prop) => {
       const [from, to] = Array.isArray(prop) ? prop : [prop, prop];
-      m[to || from] = model[from];
+      m[to || from] = control[from];
     });
   }
   return [m, useProp];

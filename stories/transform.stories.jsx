@@ -1,9 +1,9 @@
 import * as React from 'react';
-import useModel, {useModelProp} from '../src';
+import useControl, {useControlProp} from '../src';
 import {mapSetter} from '../src/transform';
 
-function Counter({model}) {
-  const useProp = useModelProp(model);
+function Counter({control}) {
+  const useProp = useControlProp(control);
   const [total, setTotal] = useProp('total', 0);
 
   return (
@@ -14,12 +14,12 @@ function Counter({model}) {
   );
 }
 
-export function DoubleCounter({model}) {
-  const [m] = useModel(model, {
+export function DoubleCounter({control}) {
+  const [m] = useControl(control, {
     total: mapSetter(t => t + 1)
   });
 
-  return <Counter model={m} />;
+  return <Counter control={m} />;
 }
 
 export default {title: 'transform'};

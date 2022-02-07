@@ -1,29 +1,29 @@
 import {renderHook, act} from '@testing-library/react-hooks';
-import useModel, {usePick} from '../src';
+import useControl, {usePick} from '../src';
 
 describe('usePick', function () {
   it('should pick count2 state only', function () {
     const {result, rerender} = renderHook(() => {
-      const [model, useProp] = useModel();
+      const [control, useProp] = useControl();
       const [count1, setCount1] = useProp('count1', 1);
       const [count2, setCount2] = useProp('count2', 2);
-      return {model, count1, setCount1, count2, setCount2};
+      return {control, count1, setCount1, count2, setCount2};
     });
 
     const {result: childResult, rerender: childRerender} = renderHook(() => {
-      const [model, useProp] = useModel(result.current.model);
+      const [control, useProp] = useControl(result.current.control);
       const [count, setCount] = useProp('count1', 1);
-      const [pickModel] = usePick(model, ['count2']);
-      return {pickModel, count, setCount};
+      const [pickControl] = usePick(control, ['count2']);
+      return {pickControl, count, setCount};
     });
 
     const {result: grandchildResult, rerender: grandchildReRender} = renderHook(
       () => {
-        const [model, useProp] = useModel(childResult.current.pickModel);
+        const [control, useProp] = useControl(childResult.current.pickControl);
         const [count1, setCount1] = useProp('count1', 0);
         const [count2, setCount2] = useProp('count2', 0);
 
-        return {model, count1, setCount1, count2, setCount2};
+        return {control, count1, setCount1, count2, setCount2};
       }
     );
 
@@ -45,25 +45,25 @@ describe('usePick', function () {
 
   it('should pick and rename prop', function () {
     const {result, rerender} = renderHook(() => {
-      const [model, useProp] = useModel();
+      const [control, useProp] = useControl();
       const [count1, setCount1] = useProp('count1', 1);
       const [count2, setCount2] = useProp('count2', 2);
-      return {model, count1, setCount1, count2, setCount2};
+      return {control, count1, setCount1, count2, setCount2};
     });
 
     const {result: childResult, rerender: childRerender} = renderHook(() => {
-      const [model, useProp] = useModel(result.current.model);
+      const [control, useProp] = useControl(result.current.control);
       const [count, setCount] = useProp('count1', 1);
-      const [pickModel] = usePick(model, [['count2', 'count']]);
-      return {pickModel, count, setCount};
+      const [pickControl] = usePick(control, [['count2', 'count']]);
+      return {pickControl, count, setCount};
     });
 
     const {result: grandchildResult, rerender: grandchildReRender} = renderHook(
       () => {
-        const [model, useProp] = useModel(childResult.current.pickModel);
+        const [control, useProp] = useControl(childResult.current.pickControl);
         const [count, setCount] = useProp('count', 0);
 
-        return {model, count, setCount};
+        return {control, count, setCount};
       }
     );
 

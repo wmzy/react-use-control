@@ -1,6 +1,6 @@
 {
   "name": "react-use-control",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "react-use-control",
   "main": "dist/development.js",
   "module": "dist/development.js",

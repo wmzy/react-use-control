@@ -1,10 +1,10 @@
 import * as React from 'react';
-import useControl, {useControlProp} from '../src';
+import useControl, {useFinalControl} from '../src';
 import {mapSetter} from '../src/transform';
 
 function Counter({control}) {
-  const useProp = useControlProp(control);
-  const [total, setTotal] = useProp('total', 0);
+  const useState = useFinalControl(control);
+  const [total, setTotal] = useState('total', 0);
 
   return (
     <div>
@@ -16,7 +16,7 @@ function Counter({control}) {
 
 export function DoubleCounter({control}) {
   const [m] = useControl(control, {
-    total: mapSetter(t => t + 1)
+    total: mapSetter(t => t * 1)
   });
 
   return <Counter control={m} />;

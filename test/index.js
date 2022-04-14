@@ -4,15 +4,15 @@ import useControl from '../src';
 describe('useControl', function () {
   it('should reuse count state', function () {
     const {result, rerender} = renderHook(() => {
-      const [control, useProp] = useControl();
-      const [count, setCount] = useProp('count', 0);
+      const [control, useState] = useControl();
+      const [count, setCount] = useState('count', 0);
       return {control, count, setCount};
     });
     result.current.count.should.equal(0);
 
     const {result: childResult, rerender: childRerender} = renderHook(() => {
-      const [, useProp] = useControl(result.current.control);
-      const [count, setCount] = useProp('count', 1);
+      const [, useState] = useControl(result.current.control);
+      const [count, setCount] = useState('count', 1);
       return {count, setCount};
     });
 
@@ -52,8 +52,8 @@ describe('useControl', function () {
     });
 
     const {result: childResult} = renderHook(() => {
-      const [, useProp] = useControl(result.current.control);
-      const [count, setCount] = useProp('count', 1);
+      const [, useState] = useControl(result.current.control);
+      const [count, setCount] = useState('count', 1);
       return {count, setCount};
     });
 
@@ -76,8 +76,8 @@ describe('useControl', function () {
     });
 
     const {result: childResult} = renderHook(() => {
-      const [, useProp] = useControl(result.current.control);
-      const [count, setCount] = useProp(countProp, 1);
+      const [, useState] = useControl(result.current.control);
+      const [count, setCount] = useState(countProp, 1);
       return {count, setCount};
     });
 

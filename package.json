@@ -2,11 +2,15 @@
   "name": "react-use-control",
   "version": "0.1.0",
   "description": "react-use-control",
-  "main": "dist/react-use-control.cjs.js",
-  "module": "dist/react-use-control.esm.js",
-  "browser": "dist/react-use-control.esm.js",
-  "unpkg": "dist/react-use-control.umd.min.js",
-  "jsdelivr": "dist/react-use-control.umd.min.js",
+  "main": "dist/development.js",
+  "module": "dist/development.js",
+  "unpkg": "dist/umd/development.js",
+  "jsdelivr": "dist/umd/development.js",
+  "exports": {
+    "development": "./dist/development.js",
+    "production": "./dist/production.js",
+    "default": "./dist/development.js"
+  },
   "files": [
     "dist"
   ],
@@ -22,7 +26,7 @@
     "prepublishOnly": "rimraf dist && npm run build",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint --fix src test *.js",
-    "test": "cross-env NODE_ENV=test nyc mocha -r @babel/register --recursive --exclude mock --exclude fixtures -r should -r should-sinon",
+    "test": "cross-env NODE_ENV=test nyc mocha",
     "start": "npm test -- --watch"
   },
   "repository": {

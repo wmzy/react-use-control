@@ -3,8 +3,8 @@ import useControl from '../src';
 import Counter, * as props from './components/Counter';
 
 export function ResetCounter() {
-  const [control, useProp] = useControl();
-  const [, setNum] = useProp(props.$num, 1);
+  const [control, useState] = useControl();
+  const [, setNum] = useState(props.$num, 1);
 
   return (
     <div>
@@ -15,8 +15,8 @@ export function ResetCounter() {
 }
 
 export function ResetAllCounters() {
-  const [control, useProp] = useControl();
-  const [, setNum] = useProp(props.$num, 1);
+  const [control, useState] = useControl();
+  const [, setNum] = useState(props.$num, 1);
 
   return (
     <div>

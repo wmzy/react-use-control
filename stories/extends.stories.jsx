@@ -1,10 +1,10 @@
 import * as React from 'react';
-import useControl, {useControlProp} from '../src';
+import useControl, {useFinalControl} from '../src';
 
 function Counter({control}) {
-  const useProp = useControlProp(control);
-  const [step, setStep] = useProp('step', 1);
-  const [num, setNum] = useProp('num', 0);
+  const useState = useFinalControl(control);
+  const [step, setStep] = useState('step', 1);
+  const [num, setNum] = useState('num', 0);
 
   return (
     <div>
@@ -16,9 +16,9 @@ function Counter({control}) {
 }
 
 function ResetCounter({control}) {
-  const [m, useProp] = useControl(control);
-  const [, setNum] = useProp('num', 1);
-  const [initialValue, setInitialValue] = useProp('initialValue', 2);
+  const [m, useState] = useControl(control);
+  const [, setNum] = useState('num', 1);
+  const [initialValue, setInitialValue] = useState('initialValue', 2);
 
   return (
     <div>
@@ -29,8 +29,8 @@ function ResetCounter({control}) {
 }
 
 export function ResetCounterTo() {
-  const [control, useProp] = useControl();
-  const [, setInitialValue] = useProp('initialValue', 2);
+  const [control, useState] = useControl();
+  const [, setInitialValue] = useState('initialValue', 2);
 
   return (
     <div>

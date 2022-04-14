@@ -11,7 +11,7 @@ const banner = `
   */
 `;
 
-export default {
+export default ['production', 'development'].map((env) => ({
   input: 'src/index.js',
   external: ['react'],
   plugins: [
@@ -19,46 +19,36 @@ export default {
       exclude: ['node_modules/**']
     }),
     replace({
-      __DEV__: process.env.NODE_ENV !== 'production'
+      __DEV__: env !== 'production'
     })
   ],
   output: [
     // browser-friendly UMD build
+    env === 'production'
+      ? {
+          globals: {
+            react: 'React'
+          },
+          name: pkg.name,
+          banner,
+          file: 'dist/umd/production.min.js',
+          sourcemap: true,
+          format: 'umd',
+          plugins: [terser({output: {comments: /^!/}})]
+        }
+      : {
+          globals: {
+            react: 'React'
+          },
+          name: pkg.name,
+          file: `dist/umd/${env}.js`,
+          sourcemap: true,
+          format: 'umd'
+        },
     {
-      globals: {
-        react: 'React'
-      },
-      name: pkg.name,
-      file: pkg.unpkg.replace('.min.', '.'),
-      sourcemap: true,
-      format: 'umd'
-    },
-    {
-      globals: {
-        react: 'React'
-      },
-      name: pkg.name,
-      banner,
-      file: pkg.unpkg,
-      sourcemap: true,
-      format: 'umd',
-      plugins: [terser({output: {comments: /^!/}})]
-    },
-    // CommonJS (for Node) and ES module (for bundlers) build.
-    // (We could have three entries in the configuration array
-    // instead of two, but it's quicker to generate multiple
-    // builds from a single configuration where possible, using
-    // an array for the `output` option, where we can specify
-    // `file` and `format` for each target)
-    {
-      file: pkg.main,
-      sourcemap: true,
-      format: 'cjs'
-    },
-    {
-      file: pkg.module,
+      file: `dist/${env}.js`,
       sourcemap: true,
       format: 'es'
     }
   ]
-};
+}));

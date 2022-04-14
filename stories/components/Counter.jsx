@@ -1,13 +1,13 @@
 import * as React from 'react';
-import {useControlProp} from '../../src';
+import {useFinalControl} from '../../src';
 
 export const $step = Symbol('step');
 export const $num = Symbol('num');
 
 export default function Counter({control}) {
-  const useProp = useControlProp(control);
-  const [step, setStep] = useProp($step, 1);
-  const [num, setNum] = useProp($num, 0);
+  const useState = useFinalControl(control);
+  const [step, setStep] = useState($step, 1);
+  const [num, setNum] = useState($num, 0);
 
   return (
     <div>

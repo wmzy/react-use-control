@@ -18,17 +18,17 @@ import * as React from 'react';
 import useControl from 'react-use-control';
 
 function useCounter(counterControl) {
-  const [control, useProp] = useControl(
+  const [control, useState] = useControl(
     counterControl ? counterControl.control : undefined
   );
 
   return {
     control,
     useStep(step) {
-      return useProp('step', step);
+      return useState('step', step);
     },
     useNumber(num) {
-      return useProp('num', num);
+      return useState('num', num);
     }
   };
 }

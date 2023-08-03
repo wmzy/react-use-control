@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type {StoryObj, Meta} from '@storybook/react';
 import useControl, {useFinalControl} from '../src';
 
 function Counter({control}) {
@@ -28,7 +29,7 @@ function ResetCounter({control}) {
   );
 }
 
-export function ResetCounterTo() {
+function ResetCounterTo() {
   const [control, useState] = useControl();
   const [, setInitialValue] = useState('initialValue', 2);
 
@@ -47,4 +48,19 @@ export function ResetCounterTo() {
   );
 }
 
-export default {title: 'extends'};
+
+const meta = {
+  title: 'ReactUseControl/Extends',
+  component: Counter,
+  argTypes: {
+    backgroundColor: {control: 'color'}
+  }
+} as Meta;
+
+export default meta;
+
+type Story = StoryObj<typeof Counter>;
+
+export const ResetTo: Story = {
+  render: () => <ResetCounterTo />,
+}

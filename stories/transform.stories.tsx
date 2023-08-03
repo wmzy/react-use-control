@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type {StoryObj, Meta} from '@storybook/react';
 import useControl, {useFinalControl} from '../src';
 import {mapSetter} from '../src/transform';
 
@@ -14,12 +15,26 @@ function Counter({control}) {
   );
 }
 
-export function DoubleCounter({control}) {
+function DoubleCounter({control}: {control?: any}) {
   const [m] = useControl(control, {
-    total: mapSetter(t => t * 1)
+    total: mapSetter(t => t + 1)
   });
 
   return <Counter control={m} />;
 }
 
-export default {title: 'transform'};
+const meta = {
+  title: 'ReactUseControl/Transform',
+  component: Counter,
+  argTypes: {
+    count: {control: 'number'}
+  }
+} as Meta;
+
+export default meta;
+
+type Story = StoryObj<typeof Counter>;
+
+export const Double: Story = {
+  render: (props) => <DoubleCounter {...props} />,
+}

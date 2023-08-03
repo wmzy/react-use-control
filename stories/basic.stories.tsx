@@ -1,8 +1,9 @@
 import * as React from 'react';
+import type {StoryObj, Meta} from '@storybook/react';
 import useControl from '../src';
 import Counter, * as props from './components/Counter';
 
-export function ResetCounter() {
+function ResetCounter() {
   const [control, useState] = useControl();
   const [, setNum] = useState(props.$num, 1);
 
@@ -14,7 +15,7 @@ export function ResetCounter() {
   );
 }
 
-export function ResetAllCounters() {
+function ResetAllCounters() {
   const [control, useState] = useControl();
   const [, setNum] = useState(props.$num, 1);
 
@@ -27,4 +28,22 @@ export function ResetAllCounters() {
   );
 }
 
-export default {title: 'basic'}
+const meta = {
+  title: 'ReactUseControl/Basic',
+  component: Counter,
+  argTypes: {
+    backgroundColor: {control: 'color'}
+  }
+} as Meta;
+
+export default meta;
+
+type Story = StoryObj<typeof Counter>;
+
+export const Reset: Story = {
+  render: () => <ResetCounter />,
+};
+
+export const ResetAll: Story = {
+  render: () => <ResetAllCounters />,
+};

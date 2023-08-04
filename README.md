@@ -15,28 +15,26 @@ npm install react-use-control
 
 ```jsx
 import * as React from 'react';
-import useControl from 'react-use-control';
+import {useControl, useControlState as useState} from 'react-use-control';
 
-function useCounter(counterControl) {
-  const [control, useState] = useControl(
-    counterControl ? counterControl.control : undefined
-  );
+function useCounter(control) {
+  const control = useControl(control);
 
   return {
     control,
     useStep(step) {
-      return useState('step', step);
+      return useState(control, 'step', step);
     },
     useNumber(num) {
-      return useState('num', num);
+      return useState(control, 'num', num);
     }
   };
 }
 
 function Counter({control}) {
-  const m = useCounter(control);
-  const [step, setStep] = m.useStep(1);
-  const [num, setNum] = m.useNumber(0);
+  const {useStep, useNumber} = useCounter(control);
+  const [step, setStep] = useStep(1);
+  const [num, setNum] = useNumber(0);
 
   return (
     <div>
@@ -48,12 +46,12 @@ function Counter({control}) {
 }
 
 export default function App() {
-  const counter = useCounter();
-  const [, setNum] = counter.useNumber(1);
+  const {control, useNumber} = useCounter();
+  const [, setNum] = useNumber(1);
 
   return (
     <div>
-      <Counter control={counter} />
+      <Counter control={control} />
       <button onClick={() => setNum(1)}>Reset</button>
     </div>
   );

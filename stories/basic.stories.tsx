@@ -1,11 +1,11 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react';
-import useControl from '../src';
+import {useControl, useControlState as useState} from '../src';
 import Counter, * as props from './components/Counter';
 
 function ResetCounter() {
-  const [control, useState] = useControl();
-  const [, setNum] = useState(props.$num, 1);
+  const control = useControl();
+  const [, setNum] = useState(control, props.$num, 1);
 
   return (
     <div>
@@ -16,8 +16,8 @@ function ResetCounter() {
 }
 
 function ResetAllCounters() {
-  const [control, useState] = useControl();
-  const [, setNum] = useState(props.$num, 1);
+  const control = useControl();
+  const [, setNum] = useState(control, props.$num, 1);
 
   return (
     <div>

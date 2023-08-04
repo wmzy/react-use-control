@@ -1,11 +1,9 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react';
-import useControl, {useFinalControl} from '../src';
-import {mapSetter} from '../src/transform';
+import {useControl, useControllableState, mapSetter} from '../src';
 
 function Counter({control}) {
-  const useState = useFinalControl(control);
-  const [total, setTotal] = useState('total', 0);
+  const [total, setTotal] = useControllableState(control, 'total', 0);
 
   return (
     <div>
@@ -16,7 +14,7 @@ function Counter({control}) {
 }
 
 function DoubleCounter({control}: {control?: any}) {
-  const [m] = useControl(control, {
+  const m = useControl(control, {
     total: mapSetter(t => t + 1)
   });
 

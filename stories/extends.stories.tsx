@@ -1,11 +1,10 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react';
-import useControl, {useFinalControl} from '../src';
+import {useControl, useControllableState, useControlState as useState} from '../src';
 
 function Counter({control}) {
-  const useState = useFinalControl(control);
-  const [step, setStep] = useState('step', 1);
-  const [num, setNum] = useState('num', 0);
+  const [step, setStep] = useControllableState(control, 'step', 1);
+  const [num, setNum] = useControllableState(control, 'num', 0);
 
   return (
     <div>
@@ -17,9 +16,9 @@ function Counter({control}) {
 }
 
 function ResetCounter({control}) {
-  const [m, useState] = useControl(control);
-  const [, setNum] = useState('num', 1);
-  const [initialValue, setInitialValue] = useState('initialValue', 2);
+  const m = useControl(control);
+  const [, setNum] = useState(m, 'num', 1);
+  const [initialValue, setInitialValue] = useState(m, 'initialValue', 2);
 
   return (
     <div>
@@ -30,8 +29,8 @@ function ResetCounter({control}) {
 }
 
 function ResetCounterTo() {
-  const [control, useState] = useControl();
-  const [, setInitialValue] = useState('initialValue', 2);
+  const control = useControl();
+  const [, setInitialValue] = useState(control, 'initialValue', 2);
 
   return (
     <div>

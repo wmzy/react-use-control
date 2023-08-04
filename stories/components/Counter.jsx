@@ -1,13 +1,12 @@
 import * as React from 'react';
-import {useFinalControl} from '../../src';
+import {useControllableState as useState} from '../../src';
 
 export const $step = Symbol('step');
 export const $num = Symbol('num');
 
 export default function Counter({control}) {
-  const useState = useFinalControl(control);
-  const [step, setStep] = useState($step, 1);
-  const [num, setNum] = useState($num, 0);
+  const [step, setStep] = useState(control, $step, 1);
+  const [num, setNum] = useState(control, $num, 0);
 
   return (
     <div>

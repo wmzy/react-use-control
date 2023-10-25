@@ -1,9 +1,9 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react';
-import {useControl, useControllableState, mapSetter} from '../src';
+import {useControl, useThru, mapSetter} from '../src';
 
-function Counter({control}) {
-  const [total, setTotal] = useControllableState(control, 'total', 0);
+function Counter({count}) {
+  const [total, setTotal] = useControl(count, 0);
 
   return (
     <div>
@@ -13,12 +13,14 @@ function Counter({control}) {
   );
 }
 
-function DoubleCounter({control}: {control?: any}) {
-  const m = useControl(control, {
-    total: mapSetter(t => t + 1)
-  });
+function DoubleCounter({count}: {count?: any}) {
+  const ref = React.useRef(1);
+  const control = useThru(count, mapSetter(t => t + 1));
 
-  return <Counter control={m} />;
+  return <div>
+    parent render count: {ref.current++}
+    <Counter count={control} />
+    </div>;
 }
 
 const meta = {

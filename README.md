@@ -3,7 +3,7 @@
 [![install size](https://packagephobia.now.sh/badge?p=react-use-control)](https://packagephobia.now.sh/result?p=react-use-control)
 # react-use-control
 
-> Split state from view.
+> Make react component state controllable.
 
 ## Install
 
@@ -15,26 +15,11 @@ npm install react-use-control
 
 ```jsx
 import * as React from 'react';
-import {useControl, useControlState as useState} from 'react-use-control';
+import {useControl} from 'react-use-control';
 
-function useCounter(control) {
-  const control = useControl(control);
-
-  return {
-    control,
-    useStep(step) {
-      return useState(control, 'step', step);
-    },
-    useNumber(num) {
-      return useState(control, 'num', num);
-    }
-  };
-}
-
-function Counter({control}) {
-  const {useStep, useNumber} = useCounter(control);
-  const [step, setStep] = useStep(1);
-  const [num, setNum] = useNumber(0);
+export default function Counter({step: s, count}) {
+  const [step, setStep] = useControl(s, 1);
+  const [num, setNum] = useControl(count, 0);
 
   return (
     <div>
@@ -45,13 +30,12 @@ function Counter({control}) {
   );
 }
 
-export default function App() {
-  const {control, useNumber} = useCounter();
-  const [, setNum] = useNumber(1);
+export default function App({count}) {
+  const [, setNum, control] = useControl(count, 1);
 
   return (
     <div>
-      <Counter control={control} />
+      <Counter count={control} />
       <button onClick={() => setNum(1)}>Reset</button>
     </div>
   );

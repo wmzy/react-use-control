@@ -10,12 +10,8 @@ export function mapSetter(fn) {
 }
 
 export function watch(onChange) {
-  return ([state, setState]) => [
-    state,
-    (s) => {
-      const newState = setState(s);
-      onChange(newState);
-      return newState;
-    }
-  ];
+  return mapSetter((v) => {
+    onChange(v);
+    return v;
+  });
 }

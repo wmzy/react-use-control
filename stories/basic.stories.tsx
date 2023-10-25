@@ -1,28 +1,26 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react';
-import {useControl, useControlState as useState} from '../src';
-import Counter, * as props from './components/Counter';
+import {useControl} from '../src/control';
+import Counter from './components/Counter';
 
-function ResetCounter() {
-  const control = useControl();
-  const [, setNum] = useState(control, props.$num, 1);
+function ResetCounter({count}: {count?: any}) {
+  const [, setNum, control] = useControl(count, 1);
 
   return (
     <div>
-      <Counter control={control} />
+      <Counter count={control} />
       <button onClick={() => setNum(1)}>Reset</button>
     </div>
   );
 }
 
-function ResetAllCounters() {
-  const control = useControl();
-  const [, setNum] = useState(control, props.$num, 1);
+function ResetAllCounters({count}: {count?: any}) {
+  const [, setNum, control] = useControl(count, 1);
 
   return (
     <div>
-      <Counter control={control} />
-      <Counter control={control} />
+      <Counter count={control} />
+      <Counter count={control} />
       <button onClick={() => setNum(1)}>Reset</button>
     </div>
   );

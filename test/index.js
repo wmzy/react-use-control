@@ -1,5 +1,6 @@
+import should from 'should';
 import {renderHook, act} from '@testing-library/react-hooks';
-import {useControl, useThru} from '../src';
+import {useControl, useThru, isControl} from '../src';
 
 describe('useControl', () => {
   it('should reuse count state', () => {
@@ -61,5 +62,33 @@ describe('useThru', () => {
     });
 
     childResult.current.count.should.equal(4);
+  });
+});
+
+describe('isControl', () => {
+  it('should support isControl', () => {
+    isControl({}).should.be.False();
+    const {result} = renderHook(() => {
+      const [, , control] = useControl(undefined);
+      return control;
+    });
+
+    isControl(result.current).should.be.True();
+  });
+});
+
+describe('dev check', () => {
+  it('should throw if not same control', () => {
+    const {rerender, result} = renderHook(({useControl1 = true} = {}) => {
+      const [, , ctrl1] = useControl(undefined);
+      const [, , ctrl2] = useControl(undefined);
+      useControl(useControl1 ? ctrl1 : ctrl2);
+    });
+
+    rerender();
+
+    rerender({useControl1: false});
+    result.error.should.be.Error();
+    result.error.should.match(/Should not call with different control/);
   });
 });

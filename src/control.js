@@ -3,20 +3,41 @@ import {useState, useRef, useCallback} from 'react';
 // If the state change, control should update reference, so that the
 // react memo not be broken.
 const oldControls = new WeakSet();
-const base = {useState};
+const isControlSymbol = Symbol('is control');
+const base = {useState, [isControlSymbol]: true};
 
 function create(baseControl) {
   return Object.create(baseControl || base);
 }
 
 export function isControl(maybeControl) {
-  return maybeControl instanceof base;
+  return Boolean(
+    maybeControl &&
+      typeof maybeControl === 'object' &&
+      maybeControl[isControlSymbol]
+  );
 }
+
+const id = Symbol('id');
 
 function useNewControl(baseControl) {
   const baseRef = useRef(baseControl);
   const newCtl = create(baseControl);
   const ref = useRef(newCtl);
+
+  if (__DEV__) {
+    const notSame = (a, b) => {
+      if (a === b) return false;
+      if (!(a && b)) return true;
+      return a[id] !== b[id];
+    };
+    if (notSame(baseControl, baseRef.current)) {
+      throw new Error('Should not call with different control');
+    }
+    const uniqueId = useRef(Symbol('unique id')).current;
+    newCtl[id] = uniqueId;
+  }
+
   if (baseRef.current !== baseControl) {
     baseRef.current = baseControl;
     ref.current = newCtl;

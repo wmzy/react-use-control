@@ -19,7 +19,7 @@ Supporting both typically requires boilerplate: checking whether a prop is `unde
 - Zero-boilerplate controlled/uncontrolled support
 - State sharing across sibling components (not just parent → child)
 - Middleware-style state transforms via `useThru`
-- Automatic re-render optimization (compatible with `React.memo`)
+- Re-render optimization via `controlEqual` (for use with `React.memo`)
 
 ## Install
 

@@ -15,7 +15,7 @@ function Counter({count}: {count?: Control<number>}) {
 
 function DoubleCounter({count}: {count?: Control<number>}) {
   const ref = React.useRef(1);
-  const control = useThru(count, mapSetter(t => t + 1));
+  const control = useThru(count, mapSetter(t => t * 2));
 
   return <div>
     parent render count: {ref.current++}

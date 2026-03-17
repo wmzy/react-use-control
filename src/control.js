@@ -84,10 +84,11 @@ export function controlEqual(prev, next) {
 
 export function useThru(control, interceptor) {
   const ctrl = useNewControl(control);
-  const {state, useState} = ctrl;
-  if (Object.getPrototypeOf(ctrl).state) {
-    ctrl.state = interceptor(state);
+  const parentState = Object.getPrototypeOf(ctrl).state;
+  if (parentState) {
+    ctrl.state = interceptor(parentState);
   } else {
+    const {useState} = ctrl;
     ctrl.useState = (...params) => interceptor(useState(...params));
   }
   return ctrl;

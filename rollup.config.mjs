@@ -1,11 +1,11 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
+import {readFileSync} from 'node:fs';
 import babel from '@rollup/plugin-babel';
 import terser from '@rollup/plugin-terser';
 import replace from '@rollup/plugin-replace';
-import {readPackageSync} from 'read-pkg';
 
-const pkg = readPackageSync();
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 const banner = `
 /*!

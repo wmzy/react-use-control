@@ -2,29 +2,31 @@ import {describe, it, expect} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
 import {useControl} from '../src/control';
 
-describe('useCallback closure — stale ctrl reference', () => {
-  it('wrappedSetValue captures the ctrl from first render, not current render', () => {
-    // useCallback(fn, []) means the closure captures `ctrl` from the initial render.
-    // On subsequent renders where state changes, useNewControl creates a new ctrl object,
-    // but wrappedSetValue still references the old one via closure.
+describe('useCallback closure — stale ctrl in oldControls tracking', () => {
+  it('control identity only updates on the first state change, not subsequent ones', () => {
+    // The root cause: useCallback(fn, []) captures `ctrl` from the first render.
     //
-    // This means `oldControls.add(ctrl)` inside wrappedSetValue adds the *first-render* ctrl,
-    // not the *current-render* ctrl.
+    // For an uncontrolled root, the useCallback branch (line 56-63) only executes on
+    // the first render. On subsequent renders, useControl early-returns at line 54
+    // because `Object.getPrototypeOf(ctrl).state` is truthy (for controlled children)
+    // — but for the ROOT, the prototype is `base` which has no `state`.
+    // So the root DOES re-execute useCallback's branch on every render... except
+    // useCallback(fn, []) returns the same cached function, so the closure is stale.
     //
-    // It still works because:
-    // 1. After first setValue, the first-render ctrl is added to oldControls
-    // 2. On next render, useNewControl checks `oldControls.has(ref.current)` — ref.current
-    //    is the *previous* ctrl (which was the first-render ctrl), so it matches
-    // 3. A new ctrl is created for the new render
+    // Timeline:
+    // Render 1: ctrl = A, useCallback captures A, ref.current = A
+    // setValue(1) → oldControls.add(A)
+    // Render 2: oldControls.has(A) → true → ref.current = B (new ctrl)
+    //           useCallback returns cached fn (still captures A)
+    // setValue(2) → oldControls.add(A) (A is already there, B is never added)
+    // Render 3: oldControls.has(B) → false → ref.current stays B
     //
-    // However, on the *third* setValue, the closure still adds the *first-render* ctrl
-    // to oldControls (which is already there), while ref.current is now the *second* ctrl.
-    // Since the second ctrl was never added to oldControls, `oldControls.has(ref.current)`
-    // returns false, and the control reference is NOT refreshed.
+    // Result: control identity changes after the 1st setValue but NOT after the 2nd.
+    // This means React.memo children won't re-render on the 2nd+ state changes
+    // if they only depend on control identity.
     //
-    // This means: after the first state change, control identity changes. After subsequent
-    // changes, it may NOT change — the dirty tracking only works for the first transition.
-    // This is a known limitation of the stale closure.
+    // However, state VALUES still update correctly because React's useState
+    // triggers re-renders regardless of control identity.
 
     const {result} = renderHook(() => {
       const [value, setValue, control] = useControl(null, 0);
@@ -33,7 +35,7 @@ describe('useCallback closure — stale ctrl reference', () => {
 
     const firstControl = result.current.control;
 
-    // First state change: control identity changes
+    // First state change: control identity DOES change
     act(() => {
       result.current.setValue(1);
     });
@@ -41,21 +43,19 @@ describe('useCallback closure — stale ctrl reference', () => {
     const secondControl = result.current.control;
     expect(secondControl).not.toBe(firstControl);
 
-    // Second state change: control identity does NOT change because wrappedSetValue's
-    // closure still adds the first-render ctrl to oldControls, not the second one.
-    // oldControls.has(secondControl) is false, so ref.current stays the same.
+    // Second state change: control identity does NOT change (stale closure effect)
     act(() => {
       result.current.setValue(2);
     });
 
     const thirdControl = result.current.control;
-    expect(thirdControl).toBe(secondControl); // ← stale closure effect
+    expect(thirdControl).toBe(secondControl);
 
-    // State updates still work correctly despite the stale closure
+    // State values are still correct
     expect(result.current.value).toBe(2);
   });
 
-  it('controlled child setValue still works after multiple parent re-renders', () => {
+  it('controlled child setValue works correctly despite stale closure in parent', () => {
     const {result: parent, rerender: rerenderParent} = renderHook(() => {
       const [value, setValue, control] = useControl(null, 0);
       return {value, setValue, control};
@@ -66,7 +66,6 @@ describe('useCallback closure — stale ctrl reference', () => {
       return {value, setValue};
     });
 
-    // Multiple rounds of state changes from child
     for (let i = 1; i <= 5; i++) {
       act(() => {
         child.current.setValue(i);
@@ -82,9 +81,6 @@ describe('useCallback closure — stale ctrl reference', () => {
 
 describe('module-level WeakSet — cross-root behavior', () => {
   it('independent useControl roots do not interfere via shared WeakSet', () => {
-    // oldControls is a module-level WeakSet shared across all useControl instances.
-    // This test verifies that two independent roots don't interfere with each other.
-
     const {result: rootA, rerender: rerenderA} = renderHook(() => {
       const [value, setValue, control] = useControl(null, 'a');
       return {value, setValue, control};
@@ -95,22 +91,18 @@ describe('module-level WeakSet — cross-root behavior', () => {
       return {value, setValue, control};
     });
 
-    // Mutate A
     act(() => {
       rootA.current.setValue('a2');
     });
     rerenderA();
 
-    // B should be unaffected
     expect(rootB.current.value).toBe('b');
 
-    // Mutate B
     act(() => {
       rootB.current.setValue('b2');
     });
     rerenderB();
 
-    // A should still hold its value
     expect(rootA.current.value).toBe('a2');
   });
 

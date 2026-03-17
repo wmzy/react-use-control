@@ -1,0 +1,137 @@
+import {describe, it, expect, vi} from 'vitest';
+import {renderHook, act} from '@testing-library/react';
+import {useControl, useThru} from '../src/control';
+import {mapState, mapSetter, watch} from '../src/transform';
+
+describe('mapState', () => {
+  it('should transform the state value read by children', () => {
+    const {result: parentResult} = renderHook(() => {
+      const control = useThru(
+        undefined,
+        mapState((v) => v * 100)
+      );
+      return {control};
+    });
+
+    const {result: childResult} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 5);
+      return {value, setValue};
+    });
+
+    expect(childResult.current.value).toBe(500);
+  });
+
+  it('should not affect the setter', () => {
+    const {result: parentResult} = renderHook(() => {
+      const control = useThru(
+        undefined,
+        mapState((v) => v * 10)
+      );
+      return {control};
+    });
+
+    const {result: childResult, rerender} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 3);
+      return {value, setValue};
+    });
+
+    expect(childResult.current.value).toBe(30);
+
+    act(() => {
+      childResult.current.setValue(7);
+    });
+    rerender();
+
+    expect(childResult.current.value).toBe(70);
+  });
+});
+
+describe('mapSetter', () => {
+  it('should transform the value before setState', () => {
+    const {result: parentResult} = renderHook(() => {
+      const control = useThru(
+        undefined,
+        mapSetter((v) => v * 2)
+      );
+      return {control};
+    });
+
+    const {result: childResult} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 1);
+      return {value, setValue};
+    });
+
+    expect(childResult.current.value).toBe(1);
+
+    act(() => {
+      childResult.current.setValue(5);
+    });
+
+    expect(childResult.current.value).toBe(10);
+  });
+
+  it('should transform the value when setter receives a function', () => {
+    const {result: parentResult} = renderHook(() => {
+      const control = useThru(
+        undefined,
+        mapSetter((v) => Math.max(0, v))
+      );
+      return {control};
+    });
+
+    const {result: childResult} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 5);
+      return {value, setValue};
+    });
+
+    act(() => {
+      childResult.current.setValue((prev) => prev - 100);
+    });
+
+    expect(childResult.current.value).toBe(0);
+  });
+});
+
+describe('watch', () => {
+  it('should call onChange on state changes', () => {
+    const onChange = vi.fn();
+
+    const {result: parentResult} = renderHook(() => {
+      const control = useThru(undefined, watch(onChange));
+      return {control};
+    });
+
+    const {result: childResult} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 0);
+      return {value, setValue};
+    });
+
+    act(() => {
+      childResult.current.setValue(42);
+    });
+
+    expect(onChange).toHaveBeenCalledWith(42);
+    expect(childResult.current.value).toBe(42);
+  });
+
+  it('should not alter the value', () => {
+    const onChange = vi.fn();
+
+    const {result: parentResult} = renderHook(() => {
+      const control = useThru(undefined, watch(onChange));
+      return {control};
+    });
+
+    const {result: childResult} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 0);
+      return {value, setValue};
+    });
+
+    act(() => {
+      childResult.current.setValue(99);
+    });
+
+    expect(childResult.current.value).toBe(99);
+    expect(onChange).toHaveBeenCalledWith(99);
+  });
+});

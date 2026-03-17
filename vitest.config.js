@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: false,
-    include: ['test/**/*.test.js', 'test/**/index.js'],
+    include: ['test/**/*.js', '!test/.eslintrc.js'],
     exclude: ['test/.eslintrc.js', 'test/type.ts']
   },
   define: {

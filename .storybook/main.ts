@@ -5,22 +5,22 @@ const config: StorybookConfig = {
     '../stories/**/*.stories.mdx',
     '../stories/**/*.stories.@(js|jsx|ts|tsx)'
   ],
-  addons: ['@storybook/addon-storysource', '@storybook/addon-essentials'],
+
+  addons: ['@storybook/addon-docs'],
+
   framework: {
     name: '@storybook/react-vite',
     options: {}
   },
+
   viteFinal(config) {
     return {
+      ...config,
       define: {
         ...config.define,
         __DEV__: true
-      },
-      ...config
+      }
     };
-  },
-  docs: {
-    autodocs: true
   }
 };
 

@@ -13,8 +13,8 @@ function create(baseControl) {
 export function isControl(maybeControl) {
   return Boolean(
     maybeControl &&
-      typeof maybeControl === 'object' &&
-      maybeControl[isControlSymbol]
+    typeof maybeControl === 'object' &&
+    maybeControl[isControlSymbol]
   );
 }
 

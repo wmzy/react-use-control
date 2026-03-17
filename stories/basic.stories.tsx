@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type {StoryObj, Meta} from '@storybook/react';
+import type {StoryObj, Meta} from '@storybook/react-vite';
 import {useControl, type Control} from '../src/control';
 import Counter from './components/Counter';
 

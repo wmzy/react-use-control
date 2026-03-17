@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type {StoryObj, Meta} from '@storybook/react';
+import type {StoryObj, Meta} from '@storybook/react-vite';
 import {useControl, useThru, mapSetter, type Control} from '../src';
 
 function Counter({count}: {count?: Control<number>}) {

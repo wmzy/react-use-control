@@ -1,8 +1,8 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react';
-import {useControl, useThru, mapSetter} from '../src';
+import {useControl, useThru, mapSetter, type Control} from '../src';
 
-function Counter({count}) {
+function Counter({count}: {count?: Control<number>}) {
   const [total, setTotal] = useControl(count, 0);
 
   return (
@@ -13,7 +13,7 @@ function Counter({count}) {
   );
 }
 
-function DoubleCounter({count}: {count?: any}) {
+function DoubleCounter({count}: {count?: Control<number>}) {
   const ref = React.useRef(1);
   const control = useThru(count, mapSetter(t => t + 1));
 

@@ -20,10 +20,12 @@ export default ['production', 'development'].map((env) => ({
   external: ['react'],
   plugins: [
     babel({
-      exclude: ['node_modules/**']
+      exclude: ['node_modules/**'],
+      babelHelpers: 'bundled'
     }),
     replace({
-      __DEV__: env !== 'production'
+      __DEV__: env !== 'production',
+      preventAssignment: true
     })
   ],
   output: [

@@ -2,17 +2,56 @@ import { Meta } from '@storybook/blocks';
 
 <Meta title="ReactUseControl/Introduction" />
 
-<style>
-  {`
+# React Use Control
 
-  .highlight {
-    color: green;
-    font-size: 40px;
-  }
+> Make React component state controllable.
 
-  `}
-</style>
+## What is a Control?
 
-# Welcome to React Use Control
+A **control** is a lightweight object that carries state through the component tree. When you call `useControl`, you get back `[value, setValue, control]` — the control can be passed as a prop to child components, letting them **share the same state** without Context or state lifting boilerplate.
 
-Make react component state controllable.
+## Core Concepts
+
+### Uncontrolled Mode
+
+When no control is passed, the component manages its own state:
+
+```jsx
+function Counter() {
+  const [count, setCount] = useControl(null, 0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+}
+```
+
+### Controlled Mode
+
+Pass a control from a parent to share state:
+
+```jsx
+function Parent() {
+  const [count, setCount, control] = useControl(null, 0);
+  return (
+    <div>
+      <Counter count={control} />
+      <button onClick={() => setCount(0)}>Reset</button>
+    </div>
+  );
+}
+```
+
+### State Transforms
+
+Use `useThru` to intercept and transform state as it flows through the tree:
+
+```jsx
+import { useThru, mapSetter } from 'react-use-control';
+
+function DoubleCounter({ count }) {
+  const control = useThru(count, mapSetter(v => v * 2));
+  return <Counter count={control} />;
+}
+```
+
+## Explore the Examples
+
+Check out the **Basic** and **Transform** stories in the sidebar to see these patterns in action.

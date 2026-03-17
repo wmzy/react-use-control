@@ -1,5 +1,5 @@
-import should from 'should';
-import {renderHook, act} from '@testing-library/react-hooks';
+import {describe, it, expect, vi} from 'vitest';
+import {renderHook, act} from '@testing-library/react';
 import {useControl, useThru, isControl} from '../src';
 
 describe('useControl', () => {
@@ -8,23 +8,23 @@ describe('useControl', () => {
       const [count, setCount, control] = useControl(null, 0);
       return {control, count, setCount};
     });
-    result.current.count.should.equal(0);
+    expect(result.current.count).toBe(0);
 
     const {result: childResult, rerender: childRerender} = renderHook(() => {
       const [count, setCount] = useControl(result.current.control, 1);
       return {count, setCount};
     });
 
-    childResult.current.count.should.equal(0);
+    expect(childResult.current.count).toBe(0);
 
     act(() => {
       result.current.setCount(2);
     });
 
-    result.current.count.should.equal(2);
+    expect(result.current.count).toBe(2);
 
     childRerender();
-    childResult.current.count.should.equal(2);
+    expect(childResult.current.count).toBe(2);
 
     act(() => {
       childResult.current.setCount(3);
@@ -32,8 +32,8 @@ describe('useControl', () => {
     rerender();
     childRerender();
 
-    childResult.current.count.should.equal(3);
-    result.current.count.should.equal(3);
+    expect(childResult.current.count).toBe(3);
+    expect(result.current.count).toBe(3);
   });
 });
 
@@ -55,31 +55,33 @@ describe('useThru', () => {
       return {count, setCount};
     });
 
-    childResult.current.count.should.equal(1);
+    expect(childResult.current.count).toBe(1);
 
     act(() => {
       childResult.current.setCount(2);
     });
 
-    childResult.current.count.should.equal(4);
+    expect(childResult.current.count).toBe(4);
   });
 });
 
 describe('isControl', () => {
   it('should support isControl', () => {
-    isControl({}).should.be.False();
+    expect(isControl({})).toBe(false);
     const {result} = renderHook(() => {
       const [, , control] = useControl(undefined);
       return control;
     });
 
-    isControl(result.current).should.be.True();
+    expect(isControl(result.current)).toBe(true);
   });
 });
 
 describe('dev check', () => {
   it('should throw if not same control', () => {
-    const {rerender, result} = renderHook(({useControl1 = true} = {}) => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const {rerender} = renderHook(({useControl1 = true} = {}) => {
       const [, , ctrl1] = useControl(undefined);
       const [, , ctrl2] = useControl(undefined);
       useControl(useControl1 ? ctrl1 : ctrl2);
@@ -87,8 +89,10 @@ describe('dev check', () => {
 
     rerender();
 
-    rerender({useControl1: false});
-    result.error.should.be.Error();
-    result.error.should.match(/Should not call with different control/);
+    expect(() => rerender({useControl1: false})).toThrow(
+      /Should not call with different control/
+    );
+
+    spy.mockRestore();
   });
 });

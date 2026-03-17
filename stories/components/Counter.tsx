@@ -1,7 +1,12 @@
 import * as React from 'react';
-import {useControl} from '../../src/index';
+import {useControl, type Control} from '../../src/index';
 
-export default function Counter({step: s, count}:{step?: any; count?: any}) {
+type CounterProps = {
+  step?: Control<number>;
+  count?: Control<number>;
+};
+
+export default function Counter({step: s, count}: CounterProps) {
   const [step, setStep] = useControl(s, 1);
   const [num, setNum] = useControl(count, 0);
 

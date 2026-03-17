@@ -1,6 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
-import {useControl, controlEqual} from '../src/control';
+import {useControl, useThru, controlEqual} from '../src/control';
+import {mapSetter} from '../src/transform';
 
 describe('controlEqual', () => {
   it('should return true when control state values are the same', () => {
@@ -75,5 +76,66 @@ describe('controlEqual', () => {
         {count: result.current, label: 'bye'}
       )
     ).toBe(false);
+  });
+
+  it('setter from useControl (wrappedSetValue) is referentially stable across renders', () => {
+    const {result} = renderHook(() => {
+      const [value, setValue, control] = useControl(null, 0);
+      return {value, setValue, control};
+    });
+
+    const setter1 = result.current.setValue;
+
+    act(() => {
+      result.current.setValue(1);
+    });
+
+    const setter2 = result.current.setValue;
+    expect(setter2).toBe(setter1);
+
+    act(() => {
+      result.current.setValue(2);
+    });
+
+    const setter3 = result.current.setValue;
+    expect(setter3).toBe(setter1);
+  });
+
+  it('setter from useThru + mapSetter changes reference each render but controlEqual still works', () => {
+    const {result: parent} = renderHook(() => {
+      const [value, setValue, control] = useControl(null, 0);
+      return {value, setValue, control};
+    });
+
+    const {result: child, rerender} = renderHook(() => {
+      const thruControl = useThru(
+        parent.current.control,
+        mapSetter((v) => v * 2)
+      );
+      const state =
+        thruControl.state || Object.getPrototypeOf(thruControl).state;
+      return {control: thruControl, setter: state[1]};
+    });
+
+    const setter1 = child.current.setter;
+
+    act(() => {
+      parent.current.setValue(1);
+    });
+    rerender();
+
+    const setter2 = child.current.setter;
+    // mapSetter creates a new wrapper function each render
+    expect(setter2).not.toBe(setter1);
+
+    // but controlEqual only compares state values, not setters — this is correct
+    // because setter identity change doesn't affect UI output
+    const prevProps = {count: child.current.control};
+    act(() => {
+      parent.current.setValue(1); // same value
+    });
+    rerender();
+    const nextProps = {count: child.current.control};
+    expect(controlEqual(prevProps, nextProps)).toBe(true);
   });
 });

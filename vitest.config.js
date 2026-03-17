@@ -4,9 +4,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: false,
-    include: ['test/**/*.js', '!test/.eslintrc.js'],
-    exclude: ['test/.eslintrc.js', 'test/type.ts'],
-    environmentMatchGlobs: [['test/ssr.test.js', 'node']]
+    include: ['test/**/*.test.js', 'test/index.js'],
+    environmentMatchGlobs: [['test/ssr.test.js', 'node']],
+    coverage: {
+      include: ['src/**/*.js']
+    }
   },
   define: {
     __DEV__: true

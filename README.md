@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/wmzy/react-use-control.svg?branch=master)](https://travis-ci.org/wmzy/react-use-control)
-[![Coverage Status](https://coveralls.io/repos/github/wmzy/react-use-control/badge.svg?branch=master)](https://coveralls.io/github/wmzy/react-use-control?branch=master)
+[![CI](https://github.com/wmzy/react-use-control/actions/workflows/ci.yml/badge.svg)](https://github.com/wmzy/react-use-control/actions/workflows/ci.yml)
 [![install size](https://packagephobia.now.sh/badge?p=react-use-control)](https://packagephobia.now.sh/result?p=react-use-control)
 
 # react-use-control
@@ -88,27 +87,13 @@ function App() {
 
 ## How It Works
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Parent: useControl(null, 0)                        │
-│  → creates control object with state [0, setState]  │
-│  → returns [value, setValue, control]                │
-│                                                     │
-│         control (passed as prop)                    │
-│           ┌──────┴──────┐                           │
-│           ▼             ▼                           │
-│  ┌─────────────┐ ┌─────────────┐                    │
-│  │ Child A     │ │ Child B     │                    │
-│  │ useControl  │ │ useControl  │                    │
-│  │ (control,1) │ │ (control,1) │                    │
-│  │             │ │             │                    │
-│  │ Reads state │ │ Reads state │                    │
-│  │ from proto  │ │ from proto  │                    │
-│  │ chain — no  │ │ chain — no  │                    │
-│  │ new state   │ │ new state   │                    │
-│  │ created     │ │ created     │                    │
-│  └─────────────┘ └─────────────┘                    │
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    P["Parent: useControl(null, 0)<br/>→ creates control with state [0, setState]<br/>→ returns [value, setValue, control]"]
+    P -- "control (as prop)" --> A
+    P -- "control (as prop)" --> B
+    A["Child A: useControl(control, 1)<br/>Reads state from prototype chain<br/>No new state created"]
+    B["Child B: useControl(control, 1)<br/>Reads state from prototype chain<br/>No new state created"]
 ```
 
 Under the hood, `control` is a plain object linked via `Object.create()`. When a child calls `useControl(control, initial)`, it checks the prototype chain: if a parent already set `state`, the child reuses it; otherwise it creates local state. This means:

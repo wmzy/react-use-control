@@ -25,7 +25,7 @@ jobs:
       - run: pnpm install
       - name: Install React ${{ matrix.react-version }}
         if: matrix.react-version != 18
-        run: pnpm add -D react@${{ matrix.react-version }} react-dom@${{ matrix.react-version }} @types/react@${{ matrix.react-version }} --no-frozen-lockfile
+        run: pnpm add -D react@${{ matrix.react-version }} react-dom@${{ matrix.react-version }} @types/react@${{ matrix.react-version }}
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

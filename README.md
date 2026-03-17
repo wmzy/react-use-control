@@ -34,11 +34,11 @@ npm install react-use-control
 When no `control` is passed, the component manages its own state:
 
 ```jsx
-import { useControl } from 'react-use-control';
+import {useControl} from 'react-use-control';
 
 function Counter() {
   const [count, setCount] = useControl(null, 0);
-  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+  return <button onClick={() => setCount((c) => c + 1)}>{count}</button>;
 }
 
 // Usage: <Counter />  — works independently
@@ -61,9 +61,9 @@ function Parent() {
   );
 }
 
-function Counter({ count }) {
+function Counter({count}) {
   const [num, setNum] = useControl(count, 0);
-  return <button onClick={() => setNum(n => n + 1)}>{num}</button>;
+  return <button onClick={() => setNum((n) => n + 1)}>{num}</button>;
 }
 ```
 
@@ -129,10 +129,13 @@ function useThru<S>(
 Insert a middleware that transforms state or setter before passing to children:
 
 ```jsx
-import { useThru, mapSetter } from 'react-use-control';
+import {useThru, mapSetter} from 'react-use-control';
 
-function DoubleOnSet({ count }) {
-  const control = useThru(count, mapSetter(v => v * 2));
+function DoubleOnSet({count}) {
+  const control = useThru(
+    count,
+    mapSetter((v) => v * 2)
+  );
   return <Counter count={control} />;
 }
 ```
@@ -142,7 +145,7 @@ function DoubleOnSet({ count }) {
 Transform the state value read by children:
 
 ```js
-mapState(count => count * 100) // children see count × 100
+mapState((count) => count * 100); // children see count × 100
 ```
 
 ### `mapSetter(fn)`
@@ -150,7 +153,7 @@ mapState(count => count * 100) // children see count × 100
 Transform the value before it reaches `setState`:
 
 ```js
-mapSetter(v => Math.max(0, v)) // clamp to non-negative
+mapSetter((v) => Math.max(0, v)); // clamp to non-negative
 ```
 
 ### `watch(onChange)`
@@ -158,28 +161,51 @@ mapSetter(v => Math.max(0, v)) // clamp to non-negative
 Side-effect on state changes (logging, analytics, etc.):
 
 ```js
-watch(v => console.log('new value:', v))
+watch((v) => console.log('new value:', v));
 ```
+
+### `controlEqual(prevProps, nextProps)`
+
+```ts
+function controlEqual<P extends Record<string, unknown>>(
+  prev: P,
+  next: P
+): boolean;
+```
+
+A comparison function for `React.memo`. It shallow-compares props, but for control objects it compares the **state value** inside rather than the object reference:
+
+```jsx
+import { memo } from 'react';
+import { useControl, controlEqual } from 'react-use-control';
+
+const Counter = memo(function Counter({ count }) {
+  const [num, setNum] = useControl(count, 0);
+  return <button onClick={() => setNum(n => n + 1)}>{num}</button>;
+}, controlEqual);
+```
+
+> **Why is this needed?** — Due to an internal caching mechanism, the control object reference may not update on every state change. `React.memo` compares props by reference by default, so it may skip re-renders. `controlEqual` fixes this by comparing the state values carried inside control objects.
 
 ### `isControl(value)`
 
 Type guard to check if a value is a control object:
 
 ```js
-isControl(someValue) // true | false
+isControl(someValue); // true | false
 ```
 
 ## Comparison with Other Approaches
 
-| Feature | react-use-control | @radix-ui/react-use-controllable-state | Manual (useState + useEffect) |
-|---|---|---|---|
-| Controlled/Uncontrolled | ✅ Automatic via control object | ✅ Via `prop`/`defaultProp`/`onChange` | ⚠️ Manual boilerplate |
-| State sharing (siblings) | ✅ Same control to multiple children | ❌ Not supported | ❌ Lift state + pass individually |
-| Middleware transforms | ✅ `useThru` + composable transforms | ❌ Not supported | ❌ Manual wrappers |
-| Re-render optimization | ✅ WeakSet-based dirty tracking | ✅ Standard React patterns | ⚠️ Depends on implementation |
-| Bundle size | ~80 LOC, zero deps | ~150 LOC, 2 internal deps | N/A |
-| Learning curve | Medium (control object concept) | Low (familiar prop pattern) | Low |
-| Ecosystem adoption | Niche | Widely used (Radix, shadcn/ui) | Universal |
+| Feature                  | react-use-control                    | @radix-ui/react-use-controllable-state | Manual (useState + useEffect)     |
+| ------------------------ | ------------------------------------ | -------------------------------------- | --------------------------------- |
+| Controlled/Uncontrolled  | ✅ Automatic via control object      | ✅ Via `prop`/`defaultProp`/`onChange` | ⚠️ Manual boilerplate             |
+| State sharing (siblings) | ✅ Same control to multiple children | ❌ Not supported                       | ❌ Lift state + pass individually |
+| Middleware transforms    | ✅ `useThru` + composable transforms | ❌ Not supported                       | ❌ Manual wrappers                |
+| Re-render optimization   | ✅ WeakSet-based dirty tracking      | ✅ Standard React patterns             | ⚠️ Depends on implementation      |
+| Bundle size              | ~80 LOC, zero deps                   | ~150 LOC, 2 internal deps              | N/A                               |
+| Learning curve           | Medium (control object concept)      | Low (familiar prop pattern)            | Low                               |
+| Ecosystem adoption       | Niche                                | Widely used (Radix, shadcn/ui)         | Universal                         |
 
 **When to choose react-use-control:**
 

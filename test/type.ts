@@ -2,6 +2,7 @@ import {
   useControl,
   useThru,
   isControl,
+  controlEqual,
   mapState,
   mapSetter,
   watch,
@@ -51,6 +52,11 @@ const maybe: unknown = {};
 if (isControl(maybe)) {
   maybe satisfies Control<unknown>;
 }
+
+// --- controlEqual ---
+
+const eqResult = controlEqual({count: ctrl, label: 'hi'}, {count: ctrl, label: 'hi'});
+eqResult satisfies boolean;
 
 // --- mapState ---
 

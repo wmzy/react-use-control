@@ -1,8 +1,8 @@
-import type { Dispatch, SetStateAction } from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 
 declare const s: unique symbol;
 
-export type Control<T> = { [s]: T };
+export type Control<T> = {[s]: T};
 
 type Nullish = null | undefined;
 
@@ -21,7 +21,11 @@ export function useControl<T>(
 
 export function useControl<T = undefined>(
   control?: Control<T> | Nullish
-): [T | undefined, Dispatch<SetStateAction<T | undefined>>, Control<T | undefined>];
+): [
+  T | undefined,
+  Dispatch<SetStateAction<T | undefined>>,
+  Control<T | undefined>
+];
 
 // useThru
 
@@ -32,7 +36,16 @@ export function useThru<T>(
 
 // isControl
 
-export function isControl(maybeControl: unknown): maybeControl is Control<unknown>;
+export function isControl(
+  maybeControl: unknown
+): maybeControl is Control<unknown>;
+
+// controlEqual
+
+export function controlEqual<P extends Record<string, unknown>>(
+  prev: P,
+  next: P
+): boolean;
 
 // transform utilities
 

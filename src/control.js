@@ -66,6 +66,22 @@ export function useControl(control, initial) {
   return [value, wrappedSetValue, ctrl];
 }
 
+function getState(ctrl) {
+  return ctrl.state || Object.getPrototypeOf(ctrl).state;
+}
+
+export function controlEqual(prev, next) {
+  const keys = Object.keys(next);
+  if (keys.length !== Object.keys(prev).length) return false;
+  return keys.every((key) => {
+    const a = prev[key];
+    const b = next[key];
+    if (isControl(a) && isControl(b))
+      return Object.is(getState(a)[0], getState(b)[0]);
+    return Object.is(a, b);
+  });
+}
+
 export function useThru(control, interceptor) {
   const ctrl = useNewControl(control);
   const {state, useState} = ctrl;

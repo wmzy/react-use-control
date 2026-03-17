@@ -32,13 +32,10 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      - run: npm install -g npm@latest
       - run: pnpm install
-
-      - name: Build
-        run: npm run build
-
-      - name: Run tests
-        run: npm run test
+      - run: npm run build
+      - run: npm run test
 
       - name: Release
         env:

@@ -2,11 +2,11 @@ name: Release
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
-      - "src/**"
-      - "package.json"
-      - ".github/workflows/release.yml"
+      - 'src/**'
+      - 'package.json'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: write

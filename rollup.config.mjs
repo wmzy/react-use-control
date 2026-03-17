@@ -11,7 +11,7 @@ const banner = `
 /*!
   * ${pkg.name} v${pkg.version} (${pkg.homepage})
   * Copyright (c) 2019-present ${pkg.author}
-  * Licensed under ${pkg.license} (${pkg.homepage}/blob/master/LICENSE)
+  * Licensed under ${pkg.license} (${pkg.homepage}/blob/main/LICENSE)
   */
 `;
 

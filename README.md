@@ -14,7 +14,7 @@ In React, component authors often need to support two usage patterns:
 
 Supporting both typically requires boilerplate: checking whether a prop is `undefined`, syncing internal state with external props via `useEffect`, and carefully handling edge cases. Libraries like `@radix-ui/react-use-controllable-state` solve this with a `prop` / `defaultProp` / `onChange` pattern.
 
-**react-use-control** takes a different approach. Instead of passing values and callbacks separately, it introduces a **control object** — a lightweight reference that carries state through the component tree via prototype chain. This enables:
+**react-use-control** takes a different approach. Instead of passing values and callbacks separately, it introduces a **control object** — an opaque token that carries state authority through the component tree. Whoever creates the state first owns it; everyone else defers. This enables:
 
 - Zero-boilerplate controlled/uncontrolled support
 - State sharing across sibling components (not just parent → child)
@@ -89,18 +89,20 @@ function App() {
 
 ```mermaid
 graph TD
-    P["Parent: useControl(null, 0)<br/>→ creates control with state [0, setState]<br/>→ returns [value, setValue, control]"]
+    P["Parent: useControl(null, 0)<br/>→ creates state, returns [value, setValue, control]"]
     P -- "control (as prop)" --> A
     P -- "control (as prop)" --> B
-    A["Child A: useControl(control, 1)<br/>Reads state from prototype chain<br/>No new state created"]
-    B["Child B: useControl(control, 1)<br/>Reads state from prototype chain<br/>No new state created"]
+    A["Child A: useControl(control, 1)<br/>State already exists → reuses it<br/>No new state created"]
+    B["Child B: useControl(control, 1)<br/>State already exists → reuses it<br/>No new state created"]
 ```
 
-Under the hood, `control` is a plain object linked via `Object.create()`. When a child calls `useControl(control, initial)`, it checks the prototype chain: if a parent already set `state`, the child reuses it; otherwise it creates local state. This means:
+When a child calls `useControl(control, initial)`, it checks whether state has already been created upstream. If so, the child reuses it directly; otherwise it creates local state. This means:
 
 - **No context providers needed** — state flows through props
-- **No `useEffect` synchronization** — it's the same state reference
+- **No `useEffect` synchronization** — parent and child share the same state, not two copies kept in sync
 - **`initial` is ignored** when controlled — just like React's `useState`
+
+> For a deeper dive into the problem and the design rationale, see [Who Owns the State? Rethinking Controlled/Uncontrolled Components in React](docs/blog/state-ownership-in-react.md).
 
 ## API
 
@@ -202,22 +204,22 @@ isControl(someValue); // true | false
 | Controlled/Uncontrolled  | ✅ Automatic via control object      | ✅ Via `prop`/`defaultProp`/`onChange` | ⚠️ Manual boilerplate             |
 | State sharing (siblings) | ✅ Same control to multiple children | ❌ Not supported                       | ❌ Lift state + pass individually |
 | Middleware transforms    | ✅ `useThru` + composable transforms | ❌ Not supported                       | ❌ Manual wrappers                |
-| Re-render optimization   | ✅ WeakSet-based dirty tracking      | ✅ Standard React patterns             | ⚠️ Depends on implementation      |
+| Re-render optimization   | ✅ Built-in dirty tracking           | ✅ Standard React patterns             | ⚠️ Depends on implementation      |
 | Bundle size              | ~80 LOC, zero deps                   | ~150 LOC, 2 internal deps              | N/A                               |
 | Learning curve           | Medium (control object concept)      | Low (familiar prop pattern)            | Low                               |
 | Ecosystem adoption       | Niche                                | Widely used (Radix, shadcn/ui)         | Universal                         |
 
 **When to choose react-use-control:**
 
-- You're building a component library where components need to share state across siblings
-- You want middleware-style transforms on state flow
+- Any React component that exposes internal state to its parent — forms, toggles, dialogs, tabs, filters, etc.
+- Sibling components that need to share state without lifting it manually
+- State flow that benefits from middleware-style transforms (clamping, logging, mapping)
 - You prefer a single prop (`control`) over the `value`/`defaultValue`/`onChange` triple
 
 **When to choose radix or manual approach:**
 
 - You need maximum ecosystem familiarity
-- Your controlled/uncontrolled needs are simple (single parent → single child)
-- You're already using Radix UI primitives
+- You're already using Radix UI primitives and want to stay consistent
 
 ## Workflow
 

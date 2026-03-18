@@ -50,19 +50,19 @@ Pass a `control` object to let a parent own the state:
 
 ```jsx
 function Parent() {
-  const [count, setCount, ctrl] = useControl(null, 0);
+  const [count, setCount, countCtrl] = useControl(null, 0);
 
   return (
     <div>
-      <Counter control={ctrl} />
+      <Counter count={countCtrl} />
       <button onClick={() => setCount(0)}>Reset</button>
       <p>Parent sees: {count}</p>
     </div>
   );
 }
 
-function Counter({control}) {
-  const [num, setNum] = useControl(control, 0);
+function Counter({count}) {
+  const [num, setNum] = useControl(count, 0);
   return <button onClick={() => setNum((n) => n + 1)}>{num}</button>;
 }
 ```
@@ -73,12 +73,12 @@ The same `control` can be passed to multiple children — they all share the sam
 
 ```jsx
 function App() {
-  const [, setCount, control] = useControl(null, 0);
+  const [, setCount, countCtl] = useControl(null, 0);
 
   return (
     <div>
-      <Counter control={control} />
-      <Counter control={control} />
+      <Counter count={countCtl} />
+      <Counter count={countCtl} />
       <button onClick={() => setCount(0)}>Reset Both</button>
     </div>
   );

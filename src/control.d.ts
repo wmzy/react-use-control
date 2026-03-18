@@ -8,16 +8,20 @@ export type Control<T> = {[s]: T};
 type Nullish = null | undefined;
 
 export function useControl<T>(
-  control: Control<T> | Nullish,
-  initial: T | (() => T)
+  controlOrInitial: Control<T> | undefined | T | (() => T),
+  maybeInitial?: T | (() => T)
 ): [T, Dispatch<SetStateAction<T>>, Control<T>];
 
 export function useControl<T>(
   control: Control<T>
 ): [T, Dispatch<SetStateAction<T>>, Control<T>];
 
+export function useControl<T>(
+  initial: T | (() => T)
+): [T, Dispatch<SetStateAction<T>>, Control<T>];
+
 export function useControl<T = undefined>(
-  control?: Control<T> | Nullish
+  control?: Control<T> | undefined
 ): [
   T | undefined,
   Dispatch<SetStateAction<T | undefined>>,

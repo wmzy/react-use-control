@@ -5,7 +5,7 @@ import {useControl, useThru, isControl} from '../src';
 describe('useControl', () => {
   it('should reuse count state', () => {
     const {result, rerender} = renderHook(() => {
-      const [count, setCount, control] = useControl(null, 0);
+      const [count, setCount, control] = useControl(undefined, 0);
       return {control, count, setCount};
     });
     expect(result.current.count).toBe(0);

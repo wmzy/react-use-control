@@ -10,7 +10,7 @@ function Counter({count}) {
 }
 
 function Parent() {
-  const [value, , control] = useControl(null, 42);
+  const [value, , control] = useControl(undefined, 42);
   return React.createElement(
     'div',
     null,
@@ -20,7 +20,7 @@ function Parent() {
 }
 
 function WithTransform() {
-  const [value, , control] = useControl(null, 5);
+  const [value, , control] = useControl(undefined, 5);
   const thru = useThru(
     control,
     mapSetter((v) => v * 2)

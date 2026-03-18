@@ -6,7 +6,7 @@ import {mapSetter} from '../src/transform';
 describe('useControl — multi-level nesting', () => {
   it('should propagate state through 3 levels', () => {
     const {result: grandparent} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 10);
+      const [value, setValue, control] = useControl(undefined, 10);
       return {value, setValue, control};
     });
 
@@ -43,7 +43,7 @@ describe('useControl — initial as function', () => {
     const initializer = vi.fn(() => 42);
 
     const {result} = renderHook(() => {
-      const [value] = useControl(null, initializer);
+      const [value] = useControl(undefined, initializer);
       return value;
     });
 
@@ -55,7 +55,7 @@ describe('useControl — initial as function', () => {
     const initializer = vi.fn(() => 999);
 
     const {result: parentResult} = renderHook(() => {
-      const [, , control] = useControl(null, 5);
+      const [, , control] = useControl(undefined, 5);
       return control;
     });
 
@@ -75,7 +75,7 @@ describe('useControl — Object.is semantics', () => {
 
     const {result} = renderHook(() => {
       renderCount++;
-      const [value, setValue] = useControl(null, 0);
+      const [value, setValue] = useControl(undefined, 0);
       return {value, setValue};
     });
 
@@ -91,7 +91,7 @@ describe('useControl — Object.is semantics', () => {
 
   it('should distinguish NaN from NaN (Object.is)', () => {
     const {result} = renderHook(() => {
-      const [value, setValue] = useControl(null, NaN);
+      const [value, setValue] = useControl(undefined, NaN);
       return {value, setValue};
     });
 
@@ -110,7 +110,7 @@ describe('useThru — chained transforms', () => {
     // Chain: root → useThru(+10) → useThru(*2) → child
     // When child calls setValue(5): 5 → *2 → 10 → +10 → 20
     const {result, rerender} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       const mid = useThru(
         control,
         mapSetter((v) => v + 10)
@@ -144,7 +144,7 @@ describe('useThru — chained transforms', () => {
 describe('useControl — setter with updater function', () => {
   it('should support functional updates', () => {
     const {result} = renderHook(() => {
-      const [value, setValue] = useControl(null, 0);
+      const [value, setValue] = useControl(undefined, 0);
       return {value, setValue};
     });
 
@@ -161,12 +161,12 @@ describe('useControl — setter with updater function', () => {
 describe('useControl — uncontrolled siblings are independent', () => {
   it('should not share state between uncontrolled instances', () => {
     const {result: a} = renderHook(() => {
-      const [value, setValue] = useControl(null, 0);
+      const [value, setValue] = useControl(undefined, 0);
       return {value, setValue};
     });
 
     const {result: b} = renderHook(() => {
-      const [value, setValue] = useControl(null, 0);
+      const [value, setValue] = useControl(undefined, 0);
       return {value, setValue};
     });
 
@@ -176,5 +176,98 @@ describe('useControl — uncontrolled siblings are independent', () => {
 
     expect(a.current.value).toBe(100);
     expect(b.current.value).toBe(0);
+  });
+});
+
+describe('useControl — single argument as initial value', () => {
+  it('should use the first argument as initial when it is not a control', () => {
+    const {result} = renderHook(() => {
+      const [value, setValue] = useControl(42);
+      return {value, setValue};
+    });
+
+    expect(result.current.value).toBe(42);
+  });
+
+  it('should accept a lazy initializer as the first argument', () => {
+    const initializer = vi.fn(() => 'hello');
+
+    const {result} = renderHook(() => {
+      const [value] = useControl(initializer);
+      return value;
+    });
+
+    expect(result.current).toBe('hello');
+    expect(initializer).toHaveBeenCalledOnce();
+  });
+
+  it('should support setValue when using single-argument form', () => {
+    const {result} = renderHook(() => {
+      const [value, setValue] = useControl(0);
+      return {value, setValue};
+    });
+
+    act(() => {
+      result.current.setValue(10);
+    });
+
+    expect(result.current.value).toBe(10);
+  });
+
+  it('should return a control object that can be passed to children', () => {
+    const {result: parent} = renderHook(() => {
+      const [value, setValue, control] = useControl(5);
+      return {value, setValue, control};
+    });
+
+    expect(isControl(parent.current.control)).toBe(true);
+
+    const {result: child, rerender: rerenderChild} = renderHook(() => {
+      const [value, setValue] = useControl(parent.current.control, 999);
+      return {value, setValue};
+    });
+
+    expect(child.current.value).toBe(5);
+
+    act(() => {
+      child.current.setValue(20);
+    });
+    rerenderChild();
+
+    expect(child.current.value).toBe(20);
+    expect(parent.current.value).toBe(20);
+  });
+
+  it('should use maybeInitial as fallback when first arg is undefined', () => {
+    const {result} = renderHook(() => {
+      const [value] = useControl(undefined, 99);
+      return value;
+    });
+
+    expect(result.current).toBe(99);
+  });
+
+  it('should prefer first arg over second when first is a non-control value', () => {
+    const {result} = renderHook(() => {
+      const [value] = useControl(7, 99);
+      return value;
+    });
+
+    expect(result.current).toBe(7);
+  });
+
+  it('should pass maybeInitial through when first arg is a control', () => {
+    const {result: parent} = renderHook(() => {
+      const [, , control] = useControl(undefined, 0);
+      return control;
+    });
+
+    const {result: child} = renderHook(() => {
+      const [value] = useControl(parent.current, 42);
+      return value;
+    });
+
+    // controlled — initial is ignored, parent state (0) is used
+    expect(child.current).toBe(0);
   });
 });

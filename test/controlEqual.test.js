@@ -6,7 +6,7 @@ import {mapSetter} from '../src/transform';
 describe('controlEqual', () => {
   it('should return true when control state values are the same', () => {
     const {result} = renderHook(() => {
-      const [, , control] = useControl(null, 42);
+      const [, , control] = useControl(undefined, 42);
       return control;
     });
 
@@ -17,12 +17,12 @@ describe('controlEqual', () => {
 
   it('should return false when control state values differ', () => {
     const {result: a} = renderHook(() => {
-      const [, , control] = useControl(null, 1);
+      const [, , control] = useControl(undefined, 1);
       return control;
     });
 
     const {result: b} = renderHook(() => {
-      const [, , control] = useControl(null, 2);
+      const [, , control] = useControl(undefined, 2);
       return control;
     });
 
@@ -31,7 +31,7 @@ describe('controlEqual', () => {
 
   it('should detect state change across renders even when control ref is stale', () => {
     const {result} = renderHook(() => {
-      const [, setValue, control] = useControl(null, 0);
+      const [, setValue, control] = useControl(undefined, 0);
       return {setValue, control};
     });
 
@@ -59,7 +59,7 @@ describe('controlEqual', () => {
 
   it('should handle mixed control and non-control props', () => {
     const {result} = renderHook(() => {
-      const [, , control] = useControl(null, 10);
+      const [, , control] = useControl(undefined, 10);
       return control;
     });
 
@@ -80,7 +80,7 @@ describe('controlEqual', () => {
 
   it('setter from useControl (wrappedSetValue) is referentially stable across renders', () => {
     const {result} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       return {value, setValue, control};
     });
 
@@ -103,7 +103,7 @@ describe('controlEqual', () => {
 
   it('setter from useThru + mapSetter changes reference each render but controlEqual still works', () => {
     const {result: parent} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       return {value, setValue, control};
     });
 

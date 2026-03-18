@@ -19,7 +19,7 @@ setValue satisfies (v: number | ((prev: number) => number)) => void;
 control satisfies Control<number>;
 
 // Uncontrolled with initial value
-const [value2, setValue2, control2] = useControl(null, 0);
+const [value2, setValue2, control2] = useControl(undefined, 0);
 value2 satisfies number;
 control2 satisfies Control<number>;
 
@@ -32,7 +32,7 @@ const [value4, setValue4, control4] = useControl(undefined);
 value4 satisfies number | undefined;
 
 // Lazy initializer
-const [value5] = useControl(null, () => 42);
+const [value5] = useControl(undefined, () => 42);
 value5 satisfies number;
 
 // --- useThru ---
@@ -55,7 +55,10 @@ if (isControl(maybe)) {
 
 // --- controlEqual ---
 
-const eqResult = controlEqual({count: ctrl, label: 'hi'}, {count: ctrl, label: 'hi'});
+const eqResult = controlEqual(
+  {count: ctrl, label: 'hi'},
+  {count: ctrl, label: 'hi'}
+);
 eqResult satisfies boolean;
 
 // --- mapState ---

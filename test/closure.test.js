@@ -25,7 +25,7 @@ describe('useCallback closure — control identity stabilization (by design)', (
     // - This is part of the API contract: use `controlEqual` with `React.memo`
 
     const {result} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       return {value, setValue, control};
     });
 
@@ -53,7 +53,7 @@ describe('useCallback closure — control identity stabilization (by design)', (
 
   it('controlled child setValue works correctly across all renders', () => {
     const {result: parent, rerender: rerenderParent} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       return {value, setValue, control};
     });
 
@@ -78,12 +78,12 @@ describe('useCallback closure — control identity stabilization (by design)', (
 describe('module-level WeakSet — cross-root behavior', () => {
   it('independent useControl roots do not interfere via shared WeakSet', () => {
     const {result: rootA, rerender: rerenderA} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 'a');
+      const [value, setValue, control] = useControl(undefined, 'a');
       return {value, setValue, control};
     });
 
     const {result: rootB, rerender: rerenderB} = renderHook(() => {
-      const [value, setValue, control] = useControl(null, 'b');
+      const [value, setValue, control] = useControl(undefined, 'b');
       return {value, setValue, control};
     });
 
@@ -104,12 +104,12 @@ describe('module-level WeakSet — cross-root behavior', () => {
 
   it('rapid alternating updates between two roots sharing the WeakSet', () => {
     const {result: rootA, rerender: rerenderA} = renderHook(() => {
-      const [value, setValue] = useControl(null, 0);
+      const [value, setValue] = useControl(undefined, 0);
       return {value, setValue};
     });
 
     const {result: rootB, rerender: rerenderB} = renderHook(() => {
-      const [value, setValue] = useControl(null, 100);
+      const [value, setValue] = useControl(undefined, 100);
       return {value, setValue};
     });
 

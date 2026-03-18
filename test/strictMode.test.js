@@ -11,7 +11,7 @@ describe('Strict Mode — double invocation', () => {
   it('useControl works correctly under StrictMode', () => {
     const {result} = renderHook(
       () => {
-        const [value, setValue, control] = useControl(null, 0);
+        const [value, setValue, control] = useControl(undefined, 0);
         return {value, setValue, control};
       },
       {wrapper: strictWrapper}
@@ -33,7 +33,7 @@ describe('Strict Mode — double invocation', () => {
   it('controlled child works under StrictMode', () => {
     const {result: parent} = renderHook(
       () => {
-        const [value, setValue, control] = useControl(null, 10);
+        const [value, setValue, control] = useControl(undefined, 10);
         return {value, setValue, control};
       },
       {wrapper: strictWrapper}
@@ -61,7 +61,7 @@ describe('Strict Mode — double invocation', () => {
   it('useThru works correctly under StrictMode', () => {
     const {result, rerender} = renderHook(
       () => {
-        const [value, setValue, control] = useControl(null, 0);
+        const [value, setValue, control] = useControl(undefined, 0);
         const thru = useThru(
           control,
           mapSetter((v) => v * 2)
@@ -94,7 +94,7 @@ describe('Strict Mode — double invocation', () => {
   it('multiple state updates under StrictMode', () => {
     const {result} = renderHook(
       () => {
-        const [value, setValue] = useControl(null, 0);
+        const [value, setValue] = useControl(undefined, 0);
         return {value, setValue};
       },
       {wrapper: strictWrapper}
@@ -120,7 +120,7 @@ describe('Concurrent mode — sibling consistency', () => {
     }
 
     function Parent() {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       return React.createElement(
         React.StrictMode,
         null,
@@ -141,8 +141,12 @@ describe('Concurrent mode — sibling consistency', () => {
       screen.getByTestId('inc').click();
     });
 
-    const aValues = snapshots.filter((s) => s.label === 'a').map((s) => s.value);
-    const bValues = snapshots.filter((s) => s.label === 'b').map((s) => s.value);
+    const aValues = snapshots
+      .filter((s) => s.label === 'a')
+      .map((s) => s.value);
+    const bValues = snapshots
+      .filter((s) => s.label === 'b')
+      .map((s) => s.value);
 
     // Both siblings should see the same value in every render pass
     aValues.forEach((v, i) => {
@@ -171,7 +175,7 @@ describe('Concurrent mode — sibling consistency', () => {
     }
 
     function Parent() {
-      const [value, setValue, control] = useControl(null, 0);
+      const [value, setValue, control] = useControl(undefined, 0);
       return React.createElement(
         React.StrictMode,
         null,

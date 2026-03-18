@@ -51,7 +51,10 @@ function useNewControl(baseControl) {
   return ref.current;
 }
 
-export function useControl(control, initial) {
+export function useControl(controlOrInitial, maybeInitial) {
+  const [control, initial] = isControl(controlOrInitial)
+    ? [controlOrInitial, maybeInitial]
+    : [null, controlOrInitial === undefined ? maybeInitial : controlOrInitial];
   const ctrl = useNewControl(control);
   const {state, useState} = ctrl;
 

@@ -37,7 +37,7 @@ When no `control` is passed, the component manages its own state:
 import {useControl} from 'react-use-control';
 
 function Counter() {
-  const [count, setCount] = useControl(null, 0);
+  const [count, setCount] = useControl(0);
   return <button onClick={() => setCount((c) => c + 1)}>{count}</button>;
 }
 
@@ -50,7 +50,7 @@ Pass a `control` object to let a parent own the state:
 
 ```jsx
 function Parent() {
-  const [count, setCount, countCtrl] = useControl(null, 0);
+  const [count, setCount, countCtrl] = useControl(0);
 
   return (
     <div>
@@ -73,7 +73,7 @@ The same `control` can be passed to multiple children — they all share the sam
 
 ```jsx
 function App() {
-  const [, setCount, countCtl] = useControl(null, 0);
+  const [, setCount, countCtl] = useControl(0);
 
   return (
     <div>
@@ -89,7 +89,7 @@ function App() {
 
 ```mermaid
 graph TD
-    P["Parent: useControl(null, 0)<br/>→ creates state, returns [value, setValue, control]"]
+    P["Parent: useControl(0)<br/>→ creates state, returns [value, setValue, control]"]
     P -- "control (as prop)" --> A
     P -- "control (as prop)" --> B
     A["Child A: useControl(control, 1)<br/>State already exists → reuses it<br/>No new state created"]
@@ -106,17 +106,21 @@ When a child calls `useControl(control, initial)`, it checks whether state has a
 
 ## API
 
-### `useControl(control?, initial?)`
+### `useControl(controlOrInitial?, initial?)`
 
 ```ts
 function useControl<S>(
   control: Control<S> | null | undefined,
   initial: S | (() => S)
 ): [S, Dispatch<SetStateAction<S>>, Control<S>];
+
+function useControl<S>(
+  initial: S | (() => S)
+): [S, Dispatch<SetStateAction<S>>, Control<S>];
 ```
 
-- `control` — a control object from a parent, or `null`/`undefined` for uncontrolled mode.
-- `initial` — initial state value (ignored when controlled).
+- `controlOrInitial` — a control object from a parent, an initial state value, or `null`/`undefined` for uncontrolled mode. When a non-control value is passed, it is used as the initial state directly.
+- `initial` — initial state value as the second argument (ignored when controlled). When the first argument is not a control, the first argument takes precedence.
 - Returns `[value, setValue, control]` — same shape as `useState`, plus the control object for passing to children.
 
 ### `useThru(control, interceptor)`

@@ -50,19 +50,19 @@ Pass a `control` object to let a parent own the state:
 
 ```jsx
 function Parent() {
-  const [count, setCount, control] = useControl(null, 0);
+  const [count, setCount, ctrl] = useControl(null, 0);
 
   return (
     <div>
-      <Counter count={control} />
+      <Counter control={ctrl} />
       <button onClick={() => setCount(0)}>Reset</button>
       <p>Parent sees: {count}</p>
     </div>
   );
 }
 
-function Counter({count}) {
-  const [num, setNum] = useControl(count, 0);
+function Counter({control}) {
+  const [num, setNum] = useControl(control, 0);
   return <button onClick={() => setNum((n) => n + 1)}>{num}</button>;
 }
 ```
@@ -77,8 +77,8 @@ function App() {
 
   return (
     <div>
-      <Counter count={control} />
-      <Counter count={control} />
+      <Counter control={control} />
+      <Counter control={control} />
       <button onClick={() => setCount(0)}>Reset Both</button>
     </div>
   );
@@ -176,12 +176,12 @@ function controlEqual<P extends Record<string, unknown>>(
 A comparison function for `React.memo`. It shallow-compares props, but for control objects it compares the **state value** inside rather than the object reference:
 
 ```jsx
-import { memo } from 'react';
-import { useControl, controlEqual } from 'react-use-control';
+import {memo} from 'react';
+import {useControl, controlEqual} from 'react-use-control';
 
-const Counter = memo(function Counter({ count }) {
+const Counter = memo(function Counter({count}) {
   const [num, setNum] = useControl(count, 0);
-  return <button onClick={() => setNum(n => n + 1)}>{num}</button>;
+  return <button onClick={() => setNum((n) => n + 1)}>{num}</button>;
 }, controlEqual);
 ```
 

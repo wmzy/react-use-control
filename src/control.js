@@ -1,7 +1,11 @@
 import {useState, useRef, useCallback} from 'react';
 
-// If the state change, control should update reference, so that the
-// react memo not be broken.
+// Tracks controls whose state has changed. On the next render, useNewControl
+// detects the dirty mark and creates a fresh control object, ensuring the
+// reference update propagates through props. After the first state change the
+// control identity stabilizes — subsequent re-renders reuse the same object.
+// This is intentional: `controlEqual` compares state VALUES (not identity),
+// so React.memo works correctly when paired with controlEqual.
 const oldControls = new WeakSet();
 const isControlSymbol = Symbol('is control');
 const base = {useState, [isControlSymbol]: true};

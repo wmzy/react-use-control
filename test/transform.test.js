@@ -1,7 +1,11 @@
+import React from 'react';
 import {describe, it, expect, vi} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
 import {useControl, useThru} from '../src/control';
 import {mapState, mapSetter, watch} from '../src/transform';
+
+const strictWrapper = ({children}) =>
+  React.createElement(React.StrictMode, null, children);
 
 describe('mapState', () => {
   it('should transform the state value read by children', () => {
@@ -133,5 +137,72 @@ describe('watch', () => {
 
     expect(childResult.current.value).toBe(99);
     expect(onChange).toHaveBeenCalledWith(99);
+  });
+});
+
+describe('watch — StrictMode behavior', () => {
+  it('watch with direct value: onChange called exactly once under StrictMode', () => {
+    const onChange = vi.fn();
+
+    const {result: parentResult} = renderHook(
+      () => {
+        const control = useThru(undefined, watch(onChange));
+        return {control};
+      },
+      {wrapper: strictWrapper}
+    );
+
+    const {result: childResult} = renderHook(
+      () => {
+        const [value, setValue] = useControl(
+          parentResult.current.control,
+          0
+        );
+        return {value, setValue};
+      },
+      {wrapper: strictWrapper}
+    );
+
+    onChange.mockClear();
+
+    act(() => {
+      childResult.current.setValue(42);
+    });
+
+    expect(childResult.current.value).toBe(42);
+    expect(onChange).toHaveBeenCalledWith(42);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('watch with updater function: onChange call count under StrictMode', () => {
+    const onChange = vi.fn();
+
+    const {result: parentResult} = renderHook(
+      () => {
+        const control = useThru(undefined, watch(onChange));
+        return {control};
+      },
+      {wrapper: strictWrapper}
+    );
+
+    const {result: childResult} = renderHook(
+      () => {
+        const [value, setValue] = useControl(
+          parentResult.current.control,
+          0
+        );
+        return {value, setValue};
+      },
+      {wrapper: strictWrapper}
+    );
+
+    onChange.mockClear();
+
+    act(() => {
+      childResult.current.setValue((prev) => prev + 10);
+    });
+
+    expect(childResult.current.value).toBe(10);
+    expect(onChange).toHaveBeenCalledWith(10);
   });
 });

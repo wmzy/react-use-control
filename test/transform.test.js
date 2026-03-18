@@ -140,6 +140,65 @@ describe('watch', () => {
   });
 });
 
+describe('useThru — interceptor should not stack on re-renders', () => {
+  it('mapSetter should not stack across re-renders', () => {
+    const sideEffect = vi.fn();
+
+    const {result: parentResult, rerender: rerenderParent} = renderHook(() => {
+      const control = useThru(
+        undefined,
+        mapSetter((v) => {
+          sideEffect(v);
+          return v;
+        })
+      );
+      return {control};
+    });
+
+    const {result: childResult, rerender: rerenderChild} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 0);
+      return {value, setValue};
+    });
+
+    rerenderParent();
+    rerenderChild();
+    sideEffect.mockClear();
+
+    act(() => {
+      childResult.current.setValue(1);
+    });
+
+    expect(childResult.current.value).toBe(1);
+    expect(sideEffect).toHaveBeenCalledTimes(1);
+  });
+
+  it('watch onChange should fire exactly once per setValue after re-renders', () => {
+    const onChange = vi.fn();
+
+    const {result: parentResult, rerender: rerenderParent} = renderHook(() => {
+      const control = useThru(undefined, watch(onChange));
+      return {control};
+    });
+
+    const {result: childResult, rerender: rerenderChild} = renderHook(() => {
+      const [value, setValue] = useControl(parentResult.current.control, 0);
+      return {value, setValue};
+    });
+
+    rerenderParent();
+    rerenderChild();
+    onChange.mockClear();
+
+    act(() => {
+      childResult.current.setValue(42);
+    });
+
+    expect(childResult.current.value).toBe(42);
+    expect(onChange).toHaveBeenCalledWith(42);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('watch — StrictMode behavior', () => {
   it('watch with direct value: onChange called with correct value under StrictMode', () => {
     const onChange = vi.fn();
@@ -154,10 +213,7 @@ describe('watch — StrictMode behavior', () => {
 
     const {result: childResult} = renderHook(
       () => {
-        const [value, setValue] = useControl(
-          parentResult.current.control,
-          0
-        );
+        const [value, setValue] = useControl(parentResult.current.control, 0);
         return {value, setValue};
       },
       {wrapper: strictWrapper}
@@ -171,6 +227,7 @@ describe('watch — StrictMode behavior', () => {
 
     expect(childResult.current.value).toBe(42);
     expect(onChange).toHaveBeenCalledWith(42);
+    expect(onChange).toHaveBeenCalledTimes(2);
   });
 
   it('watch with updater function: onChange call count under StrictMode', () => {
@@ -186,10 +243,7 @@ describe('watch — StrictMode behavior', () => {
 
     const {result: childResult} = renderHook(
       () => {
-        const [value, setValue] = useControl(
-          parentResult.current.control,
-          0
-        );
+        const [value, setValue] = useControl(parentResult.current.control, 0);
         return {value, setValue};
       },
       {wrapper: strictWrapper}

@@ -25,3 +25,5 @@ tmp
 /.nyc_output
 
 /dist
+
+/storybook-static

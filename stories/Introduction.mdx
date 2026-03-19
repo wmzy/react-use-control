@@ -12,15 +12,44 @@ A **control** is a lightweight object that carries state through the component t
 
 ## Core API
 
-| API | Description |
-|-----|-------------|
-| `useControl(control?, initial)` | Main hook — returns `[value, setValue, control]` |
-| `useThru(control, interceptor)` | Wrap a control with a state/setter transform |
-| `controlEqual(prev, next)` | Custom comparator for `React.memo` |
-| `isControl(x)` | Type guard for control objects |
-| `mapState(fn)` | Transform the value children see |
-| `mapSetter(fn)` | Transform values before they reach setState |
-| `watch(onChange)` | Side-effect on state changes |
+<table>
+  <thead>
+    <tr>
+      <th>API</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>useControl(control?, initial)</code></td>
+      <td>Main hook — returns <code>[value, setValue, control]</code></td>
+    </tr>
+    <tr>
+      <td><code>useThru(control, interceptor)</code></td>
+      <td>Wrap a control with a state/setter transform</td>
+    </tr>
+    <tr>
+      <td><code>controlEqual(prev, next)</code></td>
+      <td>Custom comparator for <code>React.memo</code></td>
+    </tr>
+    <tr>
+      <td><code>isControl(x)</code></td>
+      <td>Type guard for control objects</td>
+    </tr>
+    <tr>
+      <td><code>mapState(fn)</code></td>
+      <td>Transform the value children see</td>
+    </tr>
+    <tr>
+      <td><code>mapSetter(fn)</code></td>
+      <td>Transform values before they reach setState</td>
+    </tr>
+    <tr>
+      <td><code>watch(onChange)</code></td>
+      <td>Side-effect on state changes</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Concepts
 
@@ -43,8 +72,12 @@ Pass a control from a parent to share state:
 function Parent() {
   const [count, setCount, control] = useControl(null, 0);
   return (
-    <div>
-      <Counter count={control} />
+    <div style={{ padding: 12, border: '2px solid #4a90d9', borderRadius: 8 }}>
+      <div style={{ fontSize: 12, color: '#4a90d9', marginBottom: 8 }}>Parent</div>
+      <div style={{ padding: 8, border: '1px dashed #999', borderRadius: 4 }}>
+        <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Child</div>
+        <Counter count={control} />
+      </div>
       <button onClick={() => setCount(0)}>Reset</button>
     </div>
   );
@@ -59,9 +92,18 @@ Pass the same control to multiple children — they all share the same state:
 function App() {
   const [, , control] = useControl(null, 0);
   return (
-    <div>
-      <Counter count={control} />
-      <Counter count={control} />
+    <div style={{ padding: 12, border: '2px solid #4a90d9', borderRadius: 8 }}>
+      <div style={{ fontSize: 12, color: '#4a90d9', marginBottom: 8 }}>Parent</div>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ padding: 8, border: '1px dashed #999', borderRadius: 4 }}>
+          <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Child A</div>
+          <Counter count={control} />
+        </div>
+        <div style={{ padding: 8, border: '1px dashed #999', borderRadius: 4 }}>
+          <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Child B</div>
+          <Counter count={control} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -80,7 +122,44 @@ function DoubleCounter({ count }) {
 }
 ```
 
+### Cross-Layer Sharing
+
+Pass a control through multiple layers of wrapper components — no Context, no callback drilling:
+
+```jsx
+function Input({ temperature }) {
+  const [temp, setTemp] = useControl(temperature, 20);
+  return <button onClick={() => setTemp(t => t + 1)}>{temp}°C</button>;
+}
+
+function Card({ temperature }) {
+  const [temp] = useControl(temperature, 20);
+  return (
+    <div style={{ padding: 12, border: '2px solid #4a90d9', borderRadius: 8 }}>
+      <div style={{ fontSize: 12, color: '#4a90d9', marginBottom: 8 }}>Card</div>
+      <div>{temp}°C</div>
+      <div style={{ padding: 8, border: '1px dashed #999', borderRadius: 4 }}>
+        <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>Input</div>
+        <Input temperature={temperature} />
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [temp, setTemp, control] = useControl(null, 20);
+  return (
+    <div style={{ padding: 12, border: '2px solid #4a90d9', borderRadius: 8 }}>
+      <div style={{ fontSize: 12, color: '#4a90d9', marginBottom: 8 }}>App</div>
+      <div>Top-level: {temp}°C</div>
+      <Card temperature={control} />
+      <button onClick={() => setTemp(20)}>Reset</button>
+    </div>
+  );
+}
+```
+
 ## Explore the Examples
 
-- **Basic** — Uncontrolled, Controlled, Siblings, and `controlEqual` + memo
+- **Basic** — Uncontrolled, Controlled, Siblings, Cross-Layer Sharing, and `controlEqual` + memo
 - **Transforms** — `mapSetter`, `mapState`, `watch`, clamping, and chained transforms

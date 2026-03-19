@@ -18,11 +18,17 @@ function DoubleCounter() {
   const doubled = useThru(control, mapSetter((t) => t * 2));
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-      <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-        <code>mapSetter(v =&gt; v * 2)</code> — every +1 click actually adds 2.
-      </p>
-      <SimpleCounter count={doubled} />
+    <div style={{padding: 12, border: '2px solid #4a90d9', borderRadius: 8}}>
+      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent (useThru + mapSetter)</div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        <p style={{margin: 0, fontSize: 14, color: '#666'}}>
+          <code>mapSetter(v =&gt; v * 2)</code> — every +1 click actually adds 2.
+        </p>
+        <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
+          <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child</div>
+          <SimpleCounter count={doubled} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -35,11 +41,17 @@ function ClampedCounter() {
   );
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-      <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-        <code>mapSetter(v =&gt; clamp(0, 10, v))</code> — value is clamped between 0 and 10.
-      </p>
-      <ClampedDisplay count={clamped} />
+    <div style={{padding: 12, border: '2px solid #4a90d9', borderRadius: 8}}>
+      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent (useThru + mapSetter)</div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        <p style={{margin: 0, fontSize: 14, color: '#666'}}>
+          <code>mapSetter(v =&gt; clamp(0, 10, v))</code> — value is clamped between 0 and 10.
+        </p>
+        <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
+          <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child</div>
+          <ClampedDisplay count={clamped} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -62,18 +74,21 @@ function MapStateDemo() {
   const scaled = useThru(control, mapState((v) => v * 100));
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-      <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-        <code>mapState(v =&gt; v * 100)</code> — child sees the value multiplied by 100.
-      </p>
-      <div style={{display: 'flex', gap: 16}}>
-        <div>
-          <div style={{fontSize: 12, color: '#888', marginBottom: 4}}>Raw value</div>
-          <SimpleCounter count={control} />
-        </div>
-        <div>
-          <div style={{fontSize: 12, color: '#888', marginBottom: 4}}>Scaled (×100)</div>
-          <ScaledDisplay count={scaled} />
+    <div style={{padding: 12, border: '2px solid #4a90d9', borderRadius: 8}}>
+      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent (useThru + mapState)</div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        <p style={{margin: 0, fontSize: 14, color: '#666'}}>
+          <code>mapState(v =&gt; v * 100)</code> — child sees the value multiplied by 100.
+        </p>
+        <div style={{display: 'flex', gap: 16}}>
+          <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
+            <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child (raw)</div>
+            <SimpleCounter count={control} />
+          </div>
+          <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
+            <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child (scaled ×100)</div>
+            <ScaledDisplay count={scaled} />
+          </div>
         </div>
       </div>
     </div>
@@ -94,16 +109,22 @@ function WatchDemo() {
   );
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-      <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-        <code>watch(onChange)</code> — fires a side-effect whenever the value changes.
-      </p>
-      <SimpleCounter count={watched} />
-      <div style={{padding: 8, background: '#f5f5f5', borderRadius: 4, fontFamily: 'monospace', fontSize: 12}}>
-        {logs.length === 0
-          ? <span style={{color: '#999'}}>Click +1 to see logged values…</span>
-          : logs.map((v, i) => <div key={i}>onChange({v})</div>)
-        }
+    <div style={{padding: 12, border: '2px solid #4a90d9', borderRadius: 8}}>
+      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent (useThru + watch)</div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        <p style={{margin: 0, fontSize: 14, color: '#666'}}>
+          <code>watch(onChange)</code> — fires a side-effect whenever the value changes.
+        </p>
+        <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
+          <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child</div>
+          <SimpleCounter count={watched} />
+        </div>
+        <div style={{padding: 8, background: '#f5f5f5', borderRadius: 4, fontFamily: 'monospace', fontSize: 12}}>
+          {logs.length === 0
+            ? <span style={{color: '#999'}}>Click +1 to see logged values…</span>
+            : logs.map((v, i) => <div key={i}>onChange({v})</div>)
+          }
+        </div>
       </div>
     </div>
   );
@@ -117,12 +138,18 @@ function ChainedTransforms() {
   );
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
-      <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-        Chained: <code>mapSetter(v =&gt; v + 10)</code> then <code>mapSetter(v =&gt; v * 2)</code>
-        — clicking +1 sets <code>(value + 10) * 2</code>.
-      </p>
-      <SimpleCounter count={transformed} />
+    <div style={{padding: 12, border: '2px solid #4a90d9', borderRadius: 8}}>
+      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent (chained useThru)</div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+        <p style={{margin: 0, fontSize: 14, color: '#666'}}>
+          Chained: <code>mapSetter(v =&gt; v + 10)</code> then <code>mapSetter(v =&gt; v * 2)</code>
+          — clicking +1 sets <code>(value + 10) * 2</code>.
+        </p>
+        <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
+          <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child</div>
+          <SimpleCounter count={transformed} />
+        </div>
+      </div>
     </div>
   );
 }

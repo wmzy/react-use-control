@@ -22,7 +22,8 @@ function DoubleCounter() {
       <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent (useThru + mapSetter)</div>
       <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
         <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-          <code>mapSetter(v =&gt; v * 2)</code> — every +1 click actually adds 2.
+          <code>mapSetter(v =&gt; v * 2)</code> — the value written to state is doubled.
+          Child calls <code>setState(n =&gt; n + 1)</code>, but the result is passed through <code>v * 2</code> before reaching state.
         </p>
         <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
           <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child</div>
@@ -168,7 +169,20 @@ export const Double: Story = {
   parameters: {
     docs: {
       description: {
-        story: '`mapSetter` transforms the value before it reaches setState — every increment is doubled.',
+        story: '`mapSetter` transforms the value before it reaches setState — the written value is doubled. E.g. `setState(n => n + 1)` with state `0` computes `1`, then `mapSetter` turns it into `1 * 2 = 2`.',
+      },
+      source: {
+        code: `function DoubleCounter() {
+  const [, , control] = useControl(0);
+  const doubled = useThru(control, mapSetter(v => v * 2));
+  return <SimpleCounter count={doubled} />;
+}
+
+// Child calls setState(n => n + 1):
+//   state 0 → (0+1) → mapSetter → 1*2 = 2
+//   state 2 → (2+1) → mapSetter → 3*2 = 6
+//   state 6 → (6+1) → mapSetter → 7*2 = 14`,
+        language: 'tsx',
       },
     },
   },
@@ -180,6 +194,17 @@ export const Clamped: Story = {
     docs: {
       description: {
         story: '`mapSetter` with a clamp function to restrict the value range.',
+      },
+      source: {
+        code: `function ClampedCounter() {
+  const [, , control] = useControl(5);
+  const clamped = useThru(
+    control,
+    mapSetter(v => Math.max(0, Math.min(10, v)))
+  );
+  return <ClampedDisplay count={clamped} />;
+}`,
+        language: 'tsx',
       },
     },
   },
@@ -193,6 +218,21 @@ export const MapState: Story = {
       description: {
         story: '`mapState` transforms the value that children see, without affecting the stored value.',
       },
+      source: {
+        code: `function MapStateDemo() {
+  const [, , control] = useControl(0);
+  // Child sees value * 100, but stored value is unchanged
+  const scaled = useThru(control, mapState(v => v * 100));
+
+  return (
+    <div>
+      <SimpleCounter count={control} />   {/* raw: 0, 1, 2, ... */}
+      <ScaledDisplay count={scaled} />     {/* scaled: 0, 100, 200, ... */}
+    </div>
+  );
+}`,
+        language: 'tsx',
+      },
     },
   },
 };
@@ -205,6 +245,24 @@ export const Watch: Story = {
       description: {
         story: '`watch` fires a side-effect callback whenever the value changes — useful for logging, analytics, or syncing.',
       },
+      source: {
+        code: `function WatchDemo() {
+  const [logs, setLogs] = React.useState([]);
+  const [, , control] = useControl(0);
+  const watched = useThru(
+    control,
+    watch(v => setLogs(prev => [...prev.slice(-9), v]))
+  );
+
+  return (
+    <div>
+      <SimpleCounter count={watched} />
+      <div>{logs.map(v => \`onChange(\${v})\`)}</div>
+    </div>
+  );
+}`,
+        language: 'tsx',
+      },
     },
   },
 };
@@ -216,6 +274,21 @@ export const Chained: Story = {
     docs: {
       description: {
         story: 'Multiple `useThru` calls can be chained to compose transforms.',
+      },
+      source: {
+        code: `function ChainedTransforms() {
+  const [, , control] = useControl(0);
+  const transformed = useThru(
+    useThru(control, mapSetter(v => v + 10)),
+    mapSetter(v => v * 2)
+  );
+  return <SimpleCounter count={transformed} />;
+}
+
+// Child calls setState(n => n + 1):
+//   state 0 → (0+1) → +10 → *2 = 22
+//   state 22 → (22+1) → +10 → *2 = 66`,
+        language: 'tsx',
       },
     },
   },

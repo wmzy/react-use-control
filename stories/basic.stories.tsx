@@ -56,34 +56,39 @@ const MemoCounter = React.memo(function MemoCounter({count}: {count?: Control<nu
 
   return (
     <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
-      <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child (memo)</div>
-      <div style={{fontSize: 12, color: '#888'}}>renders: {renderCount.current}</div>
+      <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child (memo) — renders: {renderCount.current}</div>
       <span>{num} </span>
-      <button onClick={() => setNum((n) => n + 1)}>+1</button>
+      <button onClick={() => setNum(num + 1)}>+1</button>
     </div>
   );
 }, controlEqual);
 
 function ControlEqualDemo() {
-  const [, , countA] = useControl<number>(0);
-  const [, , countB] = useControl<number>(0);
-  const [label, setLabel] = React.useState('Hello');
+  const renderCount = React.useRef(0);
+  renderCount.current++;
+  const [countA, , controlA] = useControl<number>(0);
+  const [countB, , controlB] = useControl<number>(0);
+  const [tick, setTick] = React.useState(0);
 
   return (
     <div style={{padding: 12, border: '2px solid #4a90d9', borderRadius: 8}}>
-      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent</div>
+      <div style={{fontSize: 12, color: '#4a90d9', marginBottom: 8}}>Parent — renders: {renderCount.current}</div>
       <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
         <p style={{margin: 0, fontSize: 14, color: '#666'}}>
-          Changing the label re-renders the parent but not the memoized counters,
-          because <code>controlEqual</code> compares control state values instead of references.
+          Clicking "Re-render Parent" forces the parent to re-render (tick: {tick}),
+          but the memoized children skip re-rendering because <code>controlEqual</code> sees
+          their control values haven't changed.
         </p>
-        <div>
-          <label>Label: </label>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} />
-        </div>
+        <button onClick={() => setTick((t) => t + 1)}>Re-render Parent</button>
         <div style={{display: 'flex', gap: 16}}>
-          <MemoCounter count={countA} />
-          <MemoCounter count={countB} />
+          <div>
+            <div style={{fontSize: 12, color: '#888', marginBottom: 4}}>countA: {countA}</div>
+            <MemoCounter count={controlA} />
+          </div>
+          <div>
+            <div style={{fontSize: 12, color: '#888', marginBottom: 4}}>countB: {countB}</div>
+            <MemoCounter count={controlB} />
+          </div>
         </div>
       </div>
     </div>
@@ -165,6 +170,21 @@ export const Uncontrolled: Story = {
       description: {
         story: 'When no control prop is passed, the component manages its own internal state.',
       },
+      source: {
+        code: `function Counter({ count }) {
+  const [num, setNum] = useControl(count, 0);
+  return (
+    <div>
+      <span>{num}</span>
+      <button onClick={() => setNum(n => n + 1)}>+1</button>
+    </div>
+  );
+}
+
+// No control passed — Counter manages its own state
+<Counter />`,
+        language: 'tsx',
+      },
     },
   },
 };
@@ -176,6 +196,19 @@ export const Controlled: Story = {
       description: {
         story: 'A parent creates a control and passes it down. Both parent and child share the same state.',
       },
+      source: {
+        code: `function Parent() {
+  const [count, setCount, control] = useControl(0);
+  return (
+    <div>
+      <div>Parent sees count: {count}</div>
+      <Counter count={control} />
+      <button onClick={() => setCount(0)}>Reset from Parent</button>
+    </div>
+  );
+}`,
+        language: 'tsx',
+      },
     },
   },
 };
@@ -186,6 +219,20 @@ export const Siblings: Story = {
     docs: {
       description: {
         story: 'Multiple children share the same control — clicking +1 in either counter updates both.',
+      },
+      source: {
+        code: `function SiblingCounters() {
+  const [count, setCount, control] = useControl(0);
+  return (
+    <div>
+      <div>Shared count: {count}</div>
+      <Counter count={control} />
+      <Counter count={control} />
+      <button onClick={() => setCount(0)}>Reset All</button>
+    </div>
+  );
+}`,
+        language: 'tsx',
       },
     },
   },
@@ -199,6 +246,39 @@ export const WithControlEqual: Story = {
       description: {
         story: '`controlEqual` lets `React.memo` compare control props by their state values, avoiding unnecessary re-renders when the control reference changes but the value stays the same.',
       },
+      source: {
+        code: `const MemoCounter = React.memo(function MemoCounter({ count }) {
+  const renderCount = React.useRef(0);
+  renderCount.current++;
+  const [num, setNum] = useControl(count, 0);
+
+  return (
+    <div>
+      <div>renders: {renderCount.current}</div>
+      <span>{num}</span>
+      <button onClick={() => setNum(num + 1)}>+1</button>
+    </div>
+  );
+}, controlEqual);
+
+function Parent() {
+  const renderCount = React.useRef(0);
+  renderCount.current++;
+  const [countA, , controlA] = useControl(0);
+  const [countB, , controlB] = useControl(0);
+  const [tick, setTick] = React.useState(0);
+
+  return (
+    <div>
+      <div>Parent renders: {renderCount.current}</div>
+      <button onClick={() => setTick(t => t + 1)}>Re-render Parent</button>
+      <MemoCounter count={controlA} />
+      <MemoCounter count={controlB} />
+    </div>
+  );
+}`,
+        language: 'tsx',
+      },
     },
   },
 };
@@ -210,6 +290,49 @@ export const CrossLayer: Story = {
     docs: {
       description: {
         story: 'A single `control` flows through multiple layers of wrapper components (App → Panel → Card → Input). Every component at any depth can read and write the same state — no Context provider, no callback prop drilling.',
+      },
+      source: {
+        code: `function TemperatureInput({ temperature }) {
+  const [temp, setTemp] = useControl(temperature, 20);
+  return (
+    <div>
+      <button onClick={() => setTemp(t => t - 1)}>-</button>
+      <span>{temp}°C</span>
+      <button onClick={() => setTemp(t => t + 1)}>+</button>
+    </div>
+  );
+}
+
+function TemperatureCard({ temperature }) {
+  const [temp] = useControl(temperature, 20);
+  return (
+    <div>
+      <div>{temp}°C</div>
+      <TemperatureInput temperature={temperature} />
+    </div>
+  );
+}
+
+function TemperaturePanel({ temperature }) {
+  return (
+    <div>
+      <TemperatureCard temperature={temperature} />
+      <TemperatureCard temperature={temperature} />
+    </div>
+  );
+}
+
+function App() {
+  const [temp, setTemp, control] = useControl(20);
+  return (
+    <div>
+      <div>Top-level: {temp}°C</div>
+      <TemperaturePanel temperature={control} />
+      <button onClick={() => setTemp(20)}>Reset</button>
+    </div>
+  );
+}`,
+        language: 'tsx',
       },
     },
   },

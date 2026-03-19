@@ -1,16 +1,28 @@
 import { Meta } from '@storybook/addon-docs/blocks';
 
-<Meta title="ReactUseControl/Introduction" />
+<Meta title="Introduction" />
 
 # React Use Control
 
-> Make React component state controllable.
+> Make React component state controllable — seamless controlled/uncontrolled support via a lightweight control object.
 
 ## What is a Control?
 
 A **control** is a lightweight object that carries state through the component tree. When you call `useControl`, you get back `[value, setValue, control]` — the control can be passed as a prop to child components, letting them **share the same state** without Context or state lifting boilerplate.
 
-## Core Concepts
+## Core API
+
+| API | Description |
+|-----|-------------|
+| `useControl(control?, initial)` | Main hook — returns `[value, setValue, control]` |
+| `useThru(control, interceptor)` | Wrap a control with a state/setter transform |
+| `controlEqual(prev, next)` | Custom comparator for `React.memo` |
+| `isControl(x)` | Type guard for control objects |
+| `mapState(fn)` | Transform the value children see |
+| `mapSetter(fn)` | Transform values before they reach setState |
+| `watch(onChange)` | Side-effect on state changes |
+
+## Concepts
 
 ### Uncontrolled Mode
 
@@ -39,6 +51,22 @@ function Parent() {
 }
 ```
 
+### Sibling Sharing
+
+Pass the same control to multiple children — they all share the same state:
+
+```jsx
+function App() {
+  const [, , control] = useControl(null, 0);
+  return (
+    <div>
+      <Counter count={control} />
+      <Counter count={control} />
+    </div>
+  );
+}
+```
+
 ### State Transforms
 
 Use `useThru` to intercept and transform state as it flows through the tree:
@@ -54,4 +82,5 @@ function DoubleCounter({ count }) {
 
 ## Explore the Examples
 
-Check out the **Basic** and **Transform** stories in the sidebar to see these patterns in action.
+- **Basic** — Uncontrolled, Controlled, Siblings, and `controlEqual` + memo
+- **Transforms** — `mapSetter`, `mapState`, `watch`, clamping, and chained transforms

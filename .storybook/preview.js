@@ -1,8 +1,11 @@
 export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
-
   docs: {
-    codePanel: true
-  }
-}
-export const tags = ["autodocs"];
+    codePanel: true,
+  },
+  options: {
+    storySort: {
+      order: ['Introduction', 'Basic', 'Transforms'],
+    },
+  },
+};
+export const tags = ['autodocs'];

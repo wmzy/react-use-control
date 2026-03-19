@@ -58,7 +58,7 @@ const MemoCounter = React.memo(function MemoCounter({count}: {count?: Control<nu
     <div style={{padding: 8, border: '1px dashed #999', borderRadius: 4}}>
       <div style={{fontSize: 12, color: '#999', marginBottom: 4}}>Child (memo) — renders: {renderCount.current}</div>
       <span>{num} </span>
-      <button onClick={() => setNum(num + 1)}>+1</button>
+      <button onClick={() => setNum((n) => n + 1)}>+1</button>
     </div>
   );
 }, controlEqual);
@@ -285,7 +285,7 @@ export const WithControlEqual: Story = {
     <div>
       <div>renders: {renderCount.current}</div>
       <span>{num}</span>
-      <button onClick={() => setNum(num + 1)}>+1</button>
+      <button onClick={() => setNum((n) => n + 1)}>+1</button>
     </div>
   );
 }, controlEqual);

@@ -171,17 +171,20 @@ export const Uncontrolled: Story = {
         story: 'When no control prop is passed, the component manages its own internal state.',
       },
       source: {
-        code: `function Counter({ count }) {
+        code: `function Counter({ step: s, count }) {
+  const [step, setStep] = useControl(s, 1);
   const [num, setNum] = useControl(count, 0);
+
   return (
     <div>
       <span>{num}</span>
-      <button onClick={() => setNum(n => n + 1)}>+1</button>
+      <button onClick={() => setNum(n => n + step)}>add {step}</button>
+      <button onClick={() => setStep(n => n + 1)}>add step</button>
     </div>
   );
 }
 
-// No control passed — Counter manages its own state
+// No control passed — Counter manages its own state internally
 <Counter />`,
         language: 'tsx',
       },
@@ -197,7 +200,20 @@ export const Controlled: Story = {
         story: 'A parent creates a control and passes it down. Both parent and child share the same state.',
       },
       source: {
-        code: `function Parent() {
+        code: `function Counter({ step: s, count }) {
+  const [step, setStep] = useControl(s, 1);
+  const [num, setNum] = useControl(count, 0);
+  return (
+    <div>
+      <span>{num}</span>
+      <button onClick={() => setNum(n => n + step)}>add {step}</button>
+      <button onClick={() => setStep(n => n + 1)}>add step</button>
+    </div>
+  );
+}
+
+function Parent() {
+  // Parent creates a control and passes it to Counter
   const [count, setCount, control] = useControl(0);
   return (
     <div>
@@ -221,7 +237,20 @@ export const Siblings: Story = {
         story: 'Multiple children share the same control — clicking +1 in either counter updates both.',
       },
       source: {
-        code: `function SiblingCounters() {
+        code: `function Counter({ step: s, count }) {
+  const [step, setStep] = useControl(s, 1);
+  const [num, setNum] = useControl(count, 0);
+  return (
+    <div>
+      <span>{num}</span>
+      <button onClick={() => setNum(n => n + step)}>add {step}</button>
+      <button onClick={() => setStep(n => n + 1)}>add step</button>
+    </div>
+  );
+}
+
+function SiblingCounters() {
+  // Same control passed to both — they share state
   const [count, setCount, control] = useControl(0);
   return (
     <div>

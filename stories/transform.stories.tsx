@@ -14,7 +14,7 @@ function SimpleCounter({count}: {count?: Control<number>}) {
 }
 
 function DoubleCounter() {
-  const [, , control] = useControl<number>(null, 0);
+  const [, , control] = useControl<number>(0);
   const doubled = useThru(control, mapSetter((t) => t * 2));
 
   return (
@@ -28,7 +28,7 @@ function DoubleCounter() {
 }
 
 function ClampedCounter() {
-  const [, , control] = useControl<number>(null, 5);
+  const [, , control] = useControl<number>(5);
   const clamped = useThru(
     control,
     mapSetter((v) => Math.max(0, Math.min(10, v)))
@@ -58,7 +58,7 @@ function ClampedDisplay({count}: {count?: Control<number>}) {
 }
 
 function MapStateDemo() {
-  const [, , control] = useControl<number>(null, 0);
+  const [, , control] = useControl<number>(0);
   const scaled = useThru(control, mapState((v) => v * 100));
 
   return (
@@ -87,7 +87,7 @@ function ScaledDisplay({count}: {count?: Control<number>}) {
 
 function WatchDemo() {
   const [logs, setLogs] = React.useState<number[]>([]);
-  const [, , control] = useControl<number>(null, 0);
+  const [, , control] = useControl<number>(0);
   const watched = useThru(
     control,
     watch((v) => setLogs((prev) => [...prev.slice(-9), v]))
@@ -110,7 +110,7 @@ function WatchDemo() {
 }
 
 function ChainedTransforms() {
-  const [, , control] = useControl<number>(null, 0);
+  const [, , control] = useControl<number>(0);
   const transformed = useThru(
     useThru(control, mapSetter((v) => v + 10)),
     mapSetter((v) => v * 2)

@@ -8,7 +8,7 @@ function UncontrolledCounter() {
 }
 
 function ControlledCounter() {
-  const [count, setCount, control] = useControl<number>(null, 0);
+  const [count, setCount, control] = useControl<number>(0);
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
@@ -20,7 +20,7 @@ function ControlledCounter() {
 }
 
 function SiblingCounters() {
-  const [count, setCount, control] = useControl<number>(null, 0);
+  const [count, setCount, control] = useControl<number>(0);
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
@@ -55,8 +55,8 @@ const MemoCounter = React.memo(function MemoCounter({count}: {count?: Control<nu
 }, controlEqual);
 
 function ControlEqualDemo() {
-  const [, , countA] = useControl<number>(null, 0);
-  const [, , countB] = useControl<number>(null, 0);
+  const [, , countA] = useControl<number>(0);
+  const [, , countB] = useControl<number>(0);
   const [label, setLabel] = React.useState('Hello');
 
   return (

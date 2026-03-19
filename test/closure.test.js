@@ -2,28 +2,8 @@ import {describe, it, expect} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
 import {useControl} from '../src/control';
 
-describe('useCallback closure — control identity stabilization (by design)', () => {
-  it('control identity stabilizes after the first state change', () => {
-    // useCallback(fn, []) captures `ctrl` from the first render (call it A).
-    //
-    // Timeline:
-    // Render 1: ctrl = A, useCallback captures A, ref.current = A
-    // setValue(1) → oldControls.add(A)
-    // Render 2: oldControls.has(A) → true → ref.current = B (new ctrl)
-    //           useCallback returns cached fn (still references A)
-    // setValue(2) → oldControls.add(A) (A already in WeakSet, harmless no-op)
-    // Render 3: oldControls.has(B) → false → ref.current stays B
-    //
-    // Result: control identity changes once (A → B), then stabilizes at B.
-    //
-    // This is BY DESIGN, not a bug:
-    // - State values always update correctly (React's useState drives re-renders)
-    // - The initial identity change (A → B) ensures the first update propagates
-    // - Subsequent renders reuse B, which is efficient (no unnecessary object churn)
-    // - For React.memo consumers, `controlEqual` compares state VALUES inside
-    //   control objects, not control identity — so memo works correctly regardless
-    // - This is part of the API contract: use `controlEqual` with `React.memo`
-
+describe('control identity — changes on every state update', () => {
+  it('control ref updates on every state change', () => {
     const {result} = renderHook(() => {
       const [value, setValue, control] = useControl(undefined, 0);
       return {value, setValue, control};
@@ -31,7 +11,6 @@ describe('useCallback closure — control identity stabilization (by design)', (
 
     const firstControl = result.current.control;
 
-    // First state change: control identity updates (A → B)
     act(() => {
       result.current.setValue(1);
     });
@@ -39,16 +18,29 @@ describe('useCallback closure — control identity stabilization (by design)', (
     const secondControl = result.current.control;
     expect(secondControl).not.toBe(firstControl);
 
-    // Subsequent state changes: control identity stays stable at B
     act(() => {
       result.current.setValue(2);
     });
 
     const thirdControl = result.current.control;
-    expect(thirdControl).toBe(secondControl);
+    expect(thirdControl).not.toBe(secondControl);
 
-    // State values are always correct — this is what matters
     expect(result.current.value).toBe(2);
+  });
+
+  it('control ref stays stable when value does not change', () => {
+    const {result} = renderHook(() => {
+      const [value, setValue, control] = useControl(undefined, 0);
+      return {value, setValue, control};
+    });
+
+    const firstControl = result.current.control;
+
+    act(() => {
+      result.current.setValue(0);
+    });
+
+    expect(result.current.control).toBe(firstControl);
   });
 
   it('controlled child setValue works correctly across all renders', () => {
@@ -75,8 +67,8 @@ describe('useCallback closure — control identity stabilization (by design)', (
   });
 });
 
-describe('module-level WeakSet — cross-root behavior', () => {
-  it('independent useControl roots do not interfere via shared WeakSet', () => {
+describe('independent roots do not interfere', () => {
+  it('independent useControl roots do not share state', () => {
     const {result: rootA, rerender: rerenderA} = renderHook(() => {
       const [value, setValue, control] = useControl(undefined, 'a');
       return {value, setValue, control};
@@ -102,7 +94,7 @@ describe('module-level WeakSet — cross-root behavior', () => {
     expect(rootA.current.value).toBe('a2');
   });
 
-  it('rapid alternating updates between two roots sharing the WeakSet', () => {
+  it('rapid alternating updates between two roots', () => {
     const {result: rootA, rerender: rerenderA} = renderHook(() => {
       const [value, setValue] = useControl(undefined, 0);
       return {value, setValue};

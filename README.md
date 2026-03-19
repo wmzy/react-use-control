@@ -19,7 +19,7 @@ Supporting both typically requires boilerplate: checking whether a prop is `unde
 - Zero-boilerplate controlled/uncontrolled support
 - State sharing across sibling components (not just parent → child)
 - Middleware-style state transforms via `useThru`
-- Re-render optimization via `controlEqual` (for use with `React.memo`)
+- Re-render optimization — control refs are stable when values don't change, so `React.memo` works out of the box
 
 ## Install
 
@@ -170,29 +170,6 @@ Side-effect on state changes (logging, analytics, etc.):
 watch((v) => console.log('new value:', v));
 ```
 
-### `controlEqual(prevProps, nextProps)`
-
-```ts
-function controlEqual<P extends Record<string, unknown>>(
-  prev: P,
-  next: P
-): boolean;
-```
-
-A comparison function for `React.memo`. It shallow-compares props, but for control objects it compares the **state value** inside rather than the object reference:
-
-```jsx
-import {memo} from 'react';
-import {useControl, controlEqual} from 'react-use-control';
-
-const Counter = memo(function Counter({count}) {
-  const [num, setNum] = useControl(count, 0);
-  return <button onClick={() => setNum((n) => n + 1)}>{num}</button>;
-}, controlEqual);
-```
-
-> **Why is this needed?** — Due to an internal caching mechanism, the control object reference may not update on every state change. `React.memo` compares props by reference by default, so it may skip re-renders. `controlEqual` fixes this by comparing the state values carried inside control objects.
-
 ### `isControl(value)`
 
 Type guard to check if a value is a control object:
@@ -208,7 +185,7 @@ isControl(someValue); // true | false
 | Controlled/Uncontrolled  | ✅ Automatic via control object      | ✅ Via `prop`/`defaultProp`/`onChange` | ⚠️ Manual boilerplate             |
 | State sharing (siblings) | ✅ Same control to multiple children | ❌ Not supported                       | ❌ Lift state + pass individually |
 | Middleware transforms    | ✅ `useThru` + composable transforms | ❌ Not supported                       | ❌ Manual wrappers                |
-| Re-render optimization   | ✅ Built-in dirty tracking           | ✅ Standard React patterns             | ⚠️ Depends on implementation      |
+| Re-render optimization   | ✅ Stable control refs + React.memo  | ✅ Standard React patterns             | ⚠️ Depends on implementation      |
 | Bundle size              | ~80 LOC, zero deps                   | ~150 LOC, 2 internal deps              | N/A                               |
 | Learning curve           | Medium (control object concept)      | Low (familiar prop pattern)            | Low                               |
 | Ecosystem adoption       | Niche                                | Widely used (Radix, shadcn/ui)         | Universal                         |

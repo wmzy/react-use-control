@@ -32,11 +32,6 @@ export function isControl(
   maybeControl: unknown
 ): maybeControl is Control<unknown>;
 
-export function controlEqual<P extends Record<string, unknown>>(
-  prev: P,
-  next: P
-): boolean;
-
 export function useThru<T>(
   control: Control<T> | Nullish,
   interceptor: (

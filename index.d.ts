@@ -40,13 +40,6 @@ export function isControl(
   maybeControl: unknown
 ): maybeControl is Control<unknown>;
 
-// controlEqual
-
-export function controlEqual<P extends Record<string, unknown>>(
-  prev: P,
-  next: P
-): boolean;
-
 // transform utilities
 
 export function mapState<T, U>(

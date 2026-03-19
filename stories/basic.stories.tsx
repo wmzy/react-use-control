@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type {StoryObj, Meta} from '@storybook/react-vite';
-import {useControl, controlEqual, type Control} from '../src';
+import {useControl, type Control} from '../src';
 import Counter from './components/Counter';
 
 function UncontrolledCounter() {
@@ -61,9 +61,9 @@ const MemoCounter = React.memo(function MemoCounter({count}: {count?: Control<nu
       <button onClick={() => setNum((n) => n + 1)}>+1</button>
     </div>
   );
-}, controlEqual);
+});
 
-function ControlEqualDemo() {
+function MemoDemo() {
   const renderCount = React.useRef(0);
   renderCount.current++;
   const [countA, , controlA] = useControl<number>(0);
@@ -76,8 +76,8 @@ function ControlEqualDemo() {
       <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
         <p style={{margin: 0, fontSize: 14, color: '#666'}}>
           Clicking "Re-render Parent" forces the parent to re-render (tick: {tick}),
-          but the memoized children skip re-rendering because <code>controlEqual</code> sees
-          their control values haven't changed.
+          but the memoized children skip re-rendering because the control ref
+          stays stable when the value hasn't changed.
         </p>
         <button onClick={() => setTick((t) => t + 1)}>Re-render Parent</button>
         <div style={{display: 'flex', gap: 16}}>
@@ -267,13 +267,13 @@ function SiblingCounters() {
   },
 };
 
-export const WithControlEqual: Story = {
-  name: 'controlEqual + memo',
-  render: () => <ControlEqualDemo />,
+export const WithMemo: Story = {
+  name: 'React.memo',
+  render: () => <MemoDemo />,
   parameters: {
     docs: {
       description: {
-        story: '`controlEqual` lets `React.memo` compare control props by their state values, avoiding unnecessary re-renders when the control reference changes but the value stays the same.',
+        story: 'Control refs are stable when the value hasn\'t changed, so `React.memo` works out of the box — no custom comparator needed.',
       },
       source: {
         code: `const MemoCounter = React.memo(function MemoCounter({ count }) {
@@ -285,10 +285,10 @@ export const WithControlEqual: Story = {
     <div>
       <div>renders: {renderCount.current}</div>
       <span>{num}</span>
-      <button onClick={() => setNum((n) => n + 1)}>+1</button>
+      <button onClick={() => setNum(n => n + 1)}>+1</button>
     </div>
   );
-}, controlEqual);
+});
 
 function Parent() {
   const renderCount = React.useRef(0);

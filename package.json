@@ -1,6 +1,6 @@
 {
   "name": "react-use-control",
-  "version": "1.1.1",
+  "version": "0.0.0-development",
   "description": "Make React component state controllable — seamless controlled/uncontrolled support via a lightweight control object.",
   "main": "dist/development.js",
   "module": "dist/development.js",

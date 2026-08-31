@@ -6,6 +6,9 @@ export default defineConfig({
     globals: false,
     include: ['test/**/*.test.js', 'test/index.js'],
     environmentMatchGlobs: [['test/ssr.test.js', 'node']],
+    benchmark: {
+      include: ['bench/**/*.bench.js']
+    },
     coverage: {
       include: ['src/**/*.js']
     }

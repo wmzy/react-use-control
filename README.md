@@ -3,23 +3,44 @@
 
 # react-use-control
 
-> Make React component state controllable — a tiny (~80 LOC) utility for building components that seamlessly support both **controlled** and **uncontrolled** modes.
+> One prop per state. Make React component state controllable without the `value`/`defaultValue`/`onChange` triple.
 
-## Motivation
+**English** | [简体中文](./README-zh_CN.md)
 
-In React, component authors often need to support two usage patterns:
+If you've ever written a wrapper component, you've written this:
 
-- **Uncontrolled**: the component manages its own state internally (`defaultValue`).
-- **Controlled**: a parent component owns the state and passes it down (`value` + `onChange`).
+```jsx
+function Panel({ open, defaultOpen, onOpenChange }) {
+  const [internal, setInternal] = useState(defaultOpen);
+  const isControlled = open !== undefined;
+  const current = isControlled ? open : internal;
+  // ...plus an effect to sync, plus branchy setters
+}
+```
 
-Supporting both typically requires boilerplate: checking whether a prop is `undefined`, syncing internal state with external props via `useEffect`, and carefully handling edge cases. Libraries like `@radix-ui/react-use-controllable-state` solve this with a `prop` / `defaultProp` / `onChange` pattern.
+`react-use-control` removes the boilerplate. A component declares state with a single
+`useControl` call and receives **one prop per state** instead of three:
 
-**react-use-control** takes a different approach. Instead of passing values and callbacks separately, it introduces a **control object** — an opaque token that carries state authority through the component tree. Whoever creates the state first owns it; everyone else defers. This enables:
+```jsx
+function Panel({ open }) {
+  const [openValue, setOpen] = useControl(open, false);
+  // no branch, no sync, no double source
+}
+```
 
-- Zero-boilerplate controlled/uncontrolled support
-- State sharing across sibling components (not just parent → child)
-- Middleware-style state transforms via `useThru`
-- Re-render optimization — control refs are stable when values don't change, so `React.memo` works out of the box
+Pass a plain value → uncontrolled, the value is the default. Pass a control → controlled,
+parent and child share one source of truth. Same code path either way.
+
+## The idea in one sentence
+
+**A control is not a store, not a signal — it's a token that finds or creates the
+`useState` at the right layer of the tree.** Whoever calls `useControl` first creates the
+state; everyone downstream adopts it. React keeps being the store, the renderer, and the
+owner of all state.
+
+- Zero dependencies, ~80 LOC core
+- Built on `useState` / `useMemo` / `useRef` only — nothing else
+- Works with `React.memo`, StrictMode, SSR, concurrent rendering out of the box
 
 ## Install
 
@@ -29,9 +50,9 @@ npm install react-use-control
 
 ## Quick Start
 
-### Basic: Uncontrolled Component
+### Uncontrolled
 
-When no `control` is passed, the component manages its own state:
+No `control` passed — the component owns its state:
 
 ```jsx
 import {useControl} from 'react-use-control';
@@ -40,18 +61,13 @@ function Counter() {
   const [count, setCount] = useControl(0);
   return <button onClick={() => setCount((c) => c + 1)}>{count}</button>;
 }
-
-// Usage: <Counter />  — works independently
 ```
 
-### Controlled by Parent
-
-Pass a `control` object to let a parent own the state:
+### Controlled by a parent
 
 ```jsx
 function Parent() {
   const [count, setCount, countCtrl] = useControl(0);
-
   return (
     <div>
       <Counter count={countCtrl} />
@@ -62,19 +78,19 @@ function Parent() {
 }
 
 function Counter({count}) {
-  const [num, setNum] = useControl(count, 0);
+  const [num, setNum] = useControl(count, 0); // 0 ignored when controlled
   return <button onClick={() => setNum((n) => n + 1)}>{num}</button>;
 }
 ```
 
-### Sharing State Across Siblings
+### Shared across siblings
 
-The same `control` can be passed to multiple children — they all share the same state:
+The same control passed to multiple children makes them share one state — no Context,
+no state lifting:
 
 ```jsx
 function App() {
   const [, setCount, countCtl] = useControl(0);
-
   return (
     <div>
       <Counter count={countCtl} />
@@ -85,24 +101,26 @@ function App() {
 }
 ```
 
-## How It Works
+## How it works
 
-```mermaid
-graph TD
-    P["Parent: useControl(0)<br/>→ creates state, returns [value, setValue, control]"]
-    P -- "control (as prop)" --> A
-    P -- "control (as prop)" --> B
-    A["Child A: useControl(control, 1)<br/>State already exists → reuses it<br/>No new state created"]
-    B["Child B: useControl(control, 1)<br/>State already exists → reuses it<br/>No new state created"]
-```
+When a component calls `useControl(prop, initial)`:
 
-When a child calls `useControl(control, initial)`, it checks whether state has already been created upstream. If so, the child reuses it directly; otherwise it creates local state. This means:
+1. If `prop` is a control whose state was **already created** upstream → adopt it. `initial` is ignored, exactly like React ignores `useState`'s argument after the first render.
+2. Otherwise → create a fresh `useState(initial)` **in this component** and return a control carrying it.
 
-- **No context providers needed** — state flows through props
-- **No `useEffect` synchronization** — parent and child share the same state, not two copies kept in sync
-- **`initial` is ignored** when controlled — just like React's `useState`
+So there is exactly one source of truth, hosted by the first component that needed the
+state. There is no synchronization to write, because there are never two copies.
 
-> For a deeper dive into the problem and the design rationale, see [Who Owns the State? Rethinking Controlled/Uncontrolled Components in React](docs/blog/state-ownership-in-react.md).
+### What it is not
+
+| Question | Answer |
+| --- | --- |
+| Is it a signal library (Solid, Preact, Jotai)? | No. No store, no subscription, no module-level state. The state is a plain React `useState` inside the component tree. Controls only route to it. |
+| Can I create state outside a component, like a signal? | No. State lives inside a mounted component and dies with it — like any `useState`. |
+| Is it a form-state adapter? | No. If a form library owns the state, read and write through that library's API. Control is for components that *may* own state. |
+
+The control ref is stable while the value is unchanged, and changes identity when the
+value changes — so `React.memo` skips re-renders of untouched children for free.
 
 ## API
 
@@ -119,105 +137,110 @@ function useControl<S>(
 ): [S, Dispatch<SetStateAction<S>>, Control<S>];
 ```
 
-- `controlOrInitial` — a control object from a parent, an initial state value, or `null`/`undefined` for uncontrolled mode. When a non-control value is passed, it is used as the initial state directly.
-- `initial` — initial state value as the second argument (ignored when controlled). When the first argument is not a control, the first argument takes precedence.
-- Returns `[value, setValue, control]` — same shape as `useState`, plus the control object for passing to children.
+- `controlOrInitial` — a control from a parent, **or** an initial value (the single-argument form), **or** `null`/`undefined` for uncontrolled mode.
+- `initial` — fallback initial value, used only when the first argument is not a control.
+- Returns `[value, setValue, control]` — `useState`'s shape plus the control to pass down.
 
 ### `useThru(control, interceptor)`
 
 ```ts
 function useThru<S>(
   control: Control<S> | null | undefined,
-  interceptor: (state: [S, SetState<S>]) => [S, SetState<S>]
+  interceptor: (state: [S, Dispatch<SetStateAction<S>>]) => [S, Dispatch<SetStateAction<S>>]
 ): Control<S>;
 ```
 
-Insert a middleware that transforms state or setter before passing to children:
+Wraps a control with a transform, middleware-style. `useThru` itself never creates
+state — the child stays the state's owner and the trigger of changes; the wrapper
+layer contributes only the transform. Writes run through the interceptor before they
+reach `useState`, so transformed values never enter state. Compose with the built-in
+helpers:
 
 ```jsx
-import {useThru, mapSetter} from 'react-use-control';
+import {useThru, mapSetter, mapState, watch} from 'react-use-control';
 
-function DoubleOnSet({count}) {
-  const control = useThru(
-    count,
-    mapSetter((v) => v * 2)
-  );
-  return <Counter count={control} />;
-}
+const doubled = useThru(countCtrl, mapSetter((v) => v * 2));
+const clamped = useThru(doubled, mapSetter((v) => Math.max(0, v)));
+const shown = useThru(clamped, mapState((v) => `$${v}`));
+const logged = useThru(shown, watch((v) => console.log(v)));
 ```
 
-### `mapState(fn)`
-
-Transform the state value read by children:
-
-```js
-mapState((count) => count * 100); // children see count × 100
-```
-
-### `mapSetter(fn)`
-
-Transform the value before it reaches `setState`:
-
-```js
-mapSetter((v) => Math.max(0, v)); // clamp to non-negative
-```
-
-### `watch(onChange)`
-
-Side-effect on state changes (logging, analytics, etc.):
-
-```js
-watch((v) => console.log('new value:', v));
-```
+- `mapSetter(fn)` — transform values on the way **into** state (functional updates included).
+- `mapState(fn)` — transform the value children **read**.
+- `watch(onChange)` — side effect on writes (logging, analytics).
 
 ### `isControl(value)`
 
-Type guard to check if a value is a control object:
+Type guard: `isControl(x)` narrows to `Control<unknown>`.
 
-```js
-isControl(someValue); // true | false
-```
+## Comparison
 
-## Comparison with Other Approaches
+| Feature | react-use-control | `@radix-ui/react-use-controllable-state` | Manual `value`/`onChange` |
+| --- | --- | --- | --- |
+| Controlled/uncontrolled | Automatic via one prop | Via `prop`/`defaultProp`/`onChange` | Manual boilerplate |
+| Props per state | **1** | 3 | 3 |
+| State sources | 1 (created once, adopted everywhere) | 2 (prop + internal, kept in sync) | 2 |
+| Synchronization effect | None | Internal | Hand-written |
+| Sibling sharing | Same control to N children | Lift state manually | Lift state manually |
+| Middleware transforms | `useThru` + composable helpers | Not supported | Manual callback wrapping |
+| `React.memo` friendly | Yes (ref stable when value unchanged) | Standard patterns | Depends on you |
+| Bundle | ~80 LOC, 0 deps | ~150 LOC, internal deps | N/A |
 
-| Feature                  | react-use-control                    | @radix-ui/react-use-controllable-state | Manual (useState + useEffect)     |
-| ------------------------ | ------------------------------------ | -------------------------------------- | --------------------------------- |
-| Controlled/Uncontrolled  | ✅ Automatic via control object      | ✅ Via `prop`/`defaultProp`/`onChange` | ⚠️ Manual boilerplate             |
-| State sharing (siblings) | ✅ Same control to multiple children | ❌ Not supported                       | ❌ Lift state + pass individually |
-| Middleware transforms    | ✅ `useThru` + composable transforms | ❌ Not supported                       | ❌ Manual wrappers                |
-| Re-render optimization   | ✅ Stable control refs + React.memo  | ✅ Standard React patterns             | ⚠️ Depends on implementation      |
-| Bundle size              | ~80 LOC, zero deps                   | ~150 LOC, 2 internal deps              | N/A                               |
-| Learning curve           | Medium (control object concept)      | Low (familiar prop pattern)            | Low                               |
-| Ecosystem adoption       | Niche                                | Widely used (Radix, shadcn/ui)         | Universal                         |
+## Benchmarks
 
-**When to choose react-use-control:**
+Measured with `pnpm bench` (vitest `bench`, jsdom, 50 work units × 20 samples per
+implementation). Identical DOM output across the three implementations. Higher hz = faster.
 
-- Any React component that exposes internal state to its parent — forms, toggles, dialogs, tabs, filters, etc.
-- Sibling components that need to share state without lifting it manually
-- State flow that benefits from middleware-style transforms (clamping, logging, mapping)
-- You prefer a single prop (`control`) over the `value`/`defaultValue`/`onChange` triple
+| Scenario | manual | radix | react-use-control |
+| --- | --- | --- | --- |
+| mount (uncontrolled) | baseline | 1.31× faster | **1.38× faster** |
+| controlled prop update | baseline | 2.26× faster | **2.67× faster** |
+| setter update (click) | baseline | 1.09× faster | tied (0.99×) |
 
-**When to choose radix or manual approach:**
+The controlled-update path is where the architectures differ: manual and radix keep a
+second state source to sync; a control reads the single source directly. The setter path
+is dominated by React's own dispatch and is essentially a tie everywhere.
 
-- You need maximum ecosystem familiarity
-- You're already using Radix UI primitives and want to stay consistent
+Run it yourself: `pnpm bench`.
+
+## When to use it
+
+- **Wrapper components** that expose internal state to a parent — dialogs, tabs, sliders, filters, anything with a `value` triple today.
+- **Prop-heavy components**: three states means 3 props instead of 9, with zero branching inside.
+- **Sibling sharing** without Context or lifting.
+- **Middle layers** that transform state (clamp, map, log) without rebuilding the controlled pattern at every level.
+
+## When not to use it
+
+- **Form fields managed by a form library** (react-hook-form, react-f0rm, formik…). The form owns that state; read and write through the form's API. A control would be an unnecessary adapter — the controlled/uncontrolled question doesn't exist there.
+- Permanently controlled components that never own state — a plain `value` + `onChange` prop is simpler and more conventional.
+
+## Compatibility
+
+The library uses only `useState`, `useMemo`, and `useRef` — the most basic hook APIs,
+stable since hooks were introduced. No experimental features, no scheduling internals,
+no global store to leak. If your React version has hooks, it works; new React features
+(StrictMode, concurrent rendering, React Compiler) apply for free because the state is
+ordinary React state.
+
+## Used by
+
+- [haze-ui](https://github.com/wmzy/haze-ui) — a full component library where every
+  stateful component takes one `Control<T> | T` prop instead of a `value` triple.
+
+## Further reading
+
+- [Who Owns the State? Rethinking Controlled/Uncontrolled Components in React](docs/blog/state-ownership-in-react.md)
+  ([简体中文](docs/blog/state-ownership-in-react.zh-CN.md)) — the problem, the design rationale,
+  and how it differs from signals.
 
 ## Workflow
 
 ```bash
-# develop with watch mode
-npm start
-
-# run tests
-npm test
-
-# build
-npm run build
-
-# storybook
+npm start        # vitest watch
+npm test         # run tests
+npm run build    # rollup build
 npm run storybook
-
-# commit changes
 npm run commit
 ```
 

@@ -30,6 +30,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "bench": "vitest bench",
     "test:coverage": "vitest run --coverage",
     "start": "vitest"
   },
@@ -58,6 +59,7 @@
     "@babel/core": "^8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@eslint/js": "^10.0.1",
+    "@radix-ui/react-use-controllable-state": "^1.2.6",
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^1.0.0",

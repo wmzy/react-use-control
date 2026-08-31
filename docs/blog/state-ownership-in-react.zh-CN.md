@@ -112,6 +112,21 @@ function Counter({ count }) {
 `count` 是一个 control。父组件传了，组件就从它读状态；没传，组件就自建状态。
 两种情况 API 完全一致——组件内部没有任何分支。
 
+```mermaid
+flowchart TB
+  subgraph Trad["传统 value/onChange"]
+    direction LR
+    A1["父组件 useState（数据源 1）"] -->|"value"| A2["子组件渲染"]
+    A2 -->|"onChange"| A1
+    A3["子组件 useState（数据源 2）"] -.->|"useEffect 同步（多一轮渲染）"| A1
+  end
+  subgraph Ctrl["react-use-control"]
+    direction LR
+    B1["唯一 useState"] -->|"control（一个 prop）"| B2["子组件渲染"]
+    B2 -->|"setValue"| B1
+  end
+```
+
 ### 这不就是 signal 吗？
 
 自然反应："这看着像 Solid 的 signal，或者 Jotai 的 atom。" 形似——都是到处传一个
@@ -197,6 +212,14 @@ function ClampedCounter({ count }) {
 交给下游。子组件仍是状态的管理者和变更的触发者；它的 `setCount` 会先经过
 `mapSetter` 的限幅，值才会抵达 `useState`，越界值根本进不了状态。没有监听、
 没有第二份数据源、没有反向同步。
+
+```mermaid
+flowchart LR
+  C["子组件<br/>（状态拥有者 & 触发者）"]
+  C -->|"setValue(v)"| I["useThru 拦截器<br/>mapSetter / mapState / watch"]
+  I -->|"变换后的 v"| S["useState<br/>位于子组件内部"]
+  S -->|"重渲染"| C
+```
 
 拦截器可以组合，并且作用于流的两个方向：
 

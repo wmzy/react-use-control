@@ -94,6 +94,21 @@ function Counter({ count }) {
 
 `count` is a control. If a parent passes one, the component reads state from it. If not, the component creates its own. The API is identical in both cases — there is no branching anywhere in the component.
 
+```mermaid
+flowchart TB
+  subgraph Trad["Traditional value/onChange"]
+    direction LR
+    A1["parent useState (source 1)"] -->|"value"| A2["child render"]
+    A2 -->|"onChange"| A1
+    A3["child useState (source 2)"] -.->|"useEffect sync (extra render)"| A1
+  end
+  subgraph Ctrl["react-use-control"]
+    direction LR
+    B1["single useState"] -->|"control (one prop)"| B2["child render"]
+    B2 -->|"setValue"| B1
+  end
+```
+
 ### Is This Just Signals?
 
 A natural reaction: "this looks like Solid's signals, or Jotai atoms." It looks similar — both pass a token around. The mechanism is entirely different, and the difference is the point:
@@ -176,6 +191,14 @@ the wrapped pair downstream. The child remains the state's owner and the trigger
 changes; its `setCount` runs through `mapSetter`'s clamp before the value ever reaches
 `useState`, so out-of-range values never enter state at all. No listener, no second
 source, no sync-back.
+
+```mermaid
+flowchart LR
+  C["Child component<br/>(owner & trigger)"]
+  C -->|"setValue(v)"| I["useThru interceptor<br/>mapSetter / mapState / watch"]
+  I -->|"transformed v"| S["useState<br/>lives inside the child"]
+  S -->|"re-render"| C
+```
 
 Interceptors compose, and they work on both directions of the flow:
 

@@ -1,7 +1,13 @@
 import {useState, useRef, useMemo} from 'react';
 
 const isControlSymbol = Symbol('is control');
-const base = {useState, [isControlSymbol]: true};
+const base = {
+  useState,
+  [isControlSymbol]: true,
+  get [Symbol.toStringTag]() {
+    return 'Control';
+  }
+};
 
 function create(baseControl) {
   return Object.create(baseControl || base);

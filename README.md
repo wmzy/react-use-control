@@ -141,6 +141,8 @@ function useControl<S>(
 - `initial` — fallback initial value, used only when the first argument is not a control.
 - Returns `[value, setValue, control]` — `useState`'s shape plus the control to pass down.
 
+The first argument also accepts a **union** of both — `useControl(controlOrInitial: Control<S> | S | undefined, initial?)` — for props that carry either a control or a plain value. TypeScript infers `S` from either member with no casts; at runtime the non-control member simply acts as the initial value, while a control member wins and `initial` is ignored, exactly as above.
+
 ### `useThru(control, interceptor)`
 
 ```ts

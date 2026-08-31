@@ -34,6 +34,16 @@ value4 satisfies number | undefined;
 const [value5] = useControl(undefined, () => 42);
 value5 satisfies number;
 
+// Control<T> | T union — T inferred from either member, no cast needed
+declare const controlOrValue: Control<number> | number;
+const [value6, setValue6, control6] = useControl(controlOrValue, 0);
+value6 satisfies number;
+setValue6 satisfies (v: number | ((prev: number) => number)) => void;
+control6 satisfies Control<number>;
+
+const [value7] = useControl(controlOrValue);
+value7 satisfies number;
+
 // --- useThru ---
 
 const thruControl = useThru(ctrl, ([s, setS]) => {

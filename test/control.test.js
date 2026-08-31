@@ -270,4 +270,60 @@ describe('useControl — single argument as initial value', () => {
     // controlled — initial is ignored, parent state (0) is used
     expect(child.current).toBe(0);
   });
+
+  it('should accept a Control<T> | T union — non-control member acts as initial', () => {
+    const maybeControl = 7; // Control<number> | number at call sites
+
+    const {result} = renderHook(() => {
+      const [value, setValue] = useControl(maybeControl, 99);
+      return {value, setValue};
+    });
+
+    expect(result.current.value).toBe(7);
+
+    act(() => {
+      result.current.setValue(11);
+    });
+
+    expect(result.current.value).toBe(11);
+  });
+
+  it('should accept a Control<T> | T union — control member wins over initial', () => {
+    const {result: parent} = renderHook(() => {
+      const [value, , control] = useControl(undefined, 3);
+      return {value, control};
+    });
+    // a prop typed Control<number> | number — refreshed by the parent on change
+    let maybeControl = parent.current.control;
+
+    const {result: child, rerender: rerenderChild} = renderHook(() => {
+      const [value, setValue] = useControl(maybeControl, 99);
+      return {value, setValue};
+    });
+
+    // controlled — 99 ignored, parent state (3) wins
+    expect(child.current.value).toBe(3);
+
+    act(() => {
+      child.current.setValue(5);
+    });
+    maybeControl = parent.current.control;
+    rerenderChild();
+
+    expect(child.current.value).toBe(5);
+    expect(parent.current.value).toBe(5);
+  });
+
+  it('should expose Symbol.toStringTag "Control" while remaining a control', () => {
+    const {result} = renderHook(() => {
+      const [, , control] = useControl(0);
+      return control;
+    });
+
+    expect(Object.prototype.toString.call(result.current)).toBe(
+      '[object Control]'
+    );
+    expect(result.current[Symbol.toStringTag]).toBe('Control');
+    expect(isControl(result.current)).toBe(true);
+  });
 });

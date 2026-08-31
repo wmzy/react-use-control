@@ -141,6 +141,10 @@ function useControl<S>(
 - `initial` — 兜底初始值，仅当第一个参数不是 control 时生效。
 - 返回 `[value, setValue, control]` —— `useState` 的形状，外加用于向下传递的 control。
 
+第一个参数也接受两者的**联合类型** —— `useControl(controlOrInitial: Control<S> | S | undefined, initial?)` ——
+适用于可能携带 control 或普通值的 prop。TypeScript 无需强转即可从任一成员推断 `S`；运行时非 control
+成员直接作为初始值，control 成员生效时 `initial` 被忽略，语义与上文完全一致。
+
 ### `useThru(control, interceptor)`
 
 ```ts

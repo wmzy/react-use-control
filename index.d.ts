@@ -27,6 +27,16 @@ export function useControl<T = undefined>(
   Control<T | undefined>
 ];
 
+// Control<T> | T union — infers T from either member, no cast needed
+export function useControl<T>(
+  controlOrInitial: Control<T> | T | undefined,
+  maybeInitial?: T | (() => T)
+): [T, Dispatch<SetStateAction<T>>, Control<T>];
+
+export function useControl<T>(
+  controlOrInitial: Control<T> | T
+): [T, Dispatch<SetStateAction<T>>, Control<T>];
+
 // useThru
 
 export function useThru<T>(

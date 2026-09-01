@@ -5,7 +5,8 @@ import {
   mapState,
   mapSetter,
   watch,
-  type Control
+  type Control,
+  type ControlOrValue
 } from '..';
 
 // --- useControl ---
@@ -34,8 +35,8 @@ value4 satisfies number | undefined;
 const [value5] = useControl(undefined, () => 42);
 value5 satisfies number;
 
-// Control<T> | T union — T inferred from either member, no cast needed
-declare const controlOrValue: Control<number> | number;
+// ControlOrValue<T> — the Control<T> | T union as one generic
+declare const controlOrValue: ControlOrValue<number>;
 const [value6, setValue6, control6] = useControl(controlOrValue, 0);
 value6 satisfies number;
 setValue6 satisfies (v: number | ((prev: number) => number)) => void;
@@ -43,6 +44,12 @@ control6 satisfies Control<number>;
 
 const [value7] = useControl(controlOrValue);
 value7 satisfies number;
+
+// ControlOrValue expands to Control<T> | T — assignable both ways
+const plainOrControl: ControlOrValue<number> = 1;
+const plainOrControl2: ControlOrValue<number> = {} as Control<number>;
+plainOrControl satisfies number | Control<number>;
+plainOrControl2 satisfies number | Control<number>;
 
 // --- useThru ---
 

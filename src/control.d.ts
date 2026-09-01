@@ -5,6 +5,11 @@ type S = typeof s;
 
 export type Control<T> = {[s]: T};
 
+/** `Control<T> | T`: a state prop that accepts either a control (controlled)
+ *  or a plain value (uncontrolled default) — the one-prop form used by
+ *  component libraries built on react-use-control. */
+export type ControlOrValue<T> = Control<T> | T;
+
 type Nullish = null | undefined;
 
 export function useControl<T>(

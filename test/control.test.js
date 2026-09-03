@@ -327,3 +327,79 @@ describe('useControl — single argument as initial value', () => {
     expect(isControl(result.current)).toBe(true);
   });
 });
+
+describe('useControl — dev warning on controlled/uncontrolled switch', () => {
+  it('should warn when switching from uncontrolled to controlled', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const parent = renderHook(() => useControl(5));
+    const control = parent.result.current[2];
+
+    let prop;
+    const {rerender} = renderHook(() => useControl(prop, 0));
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    prop = control;
+    try {
+      // React also throws its hook-order error once the paths diverge —
+      // the point here is that our warning fires first, with the real cause
+      rerender();
+    } catch {
+      // expected
+    }
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toMatch(
+      /switching from uncontrolled \(a plain value\) to controlled \(a control\)/
+    );
+    warnSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('should warn when switching from controlled to uncontrolled', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const parent = renderHook(() => useControl(5));
+    const control = parent.result.current[2];
+
+    let prop = control;
+    const {rerender} = renderHook(() => useControl(prop, 0));
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    prop = 42;
+    try {
+      rerender();
+    } catch {
+      // expected
+    }
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toMatch(
+      /switching from controlled \(a control\) to uncontrolled \(a plain value\)/
+    );
+    warnSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('should not warn when the shape stays the same', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // uncontrolled, changing defaults — same shape, no warning
+    const {result, rerender} = renderHook(({v}) => useControl(v), {
+      initialProps: {v: 5}
+    });
+    rerender({v: 7});
+    expect(warnSpy).not.toHaveBeenCalled();
+    // changing defaults are ignored (useState semantics)
+    expect(result.current[0]).toBe(5);
+
+    // controlled, stable control — no warning
+    const parent = renderHook(() => useControl(5));
+    const control = parent.result.current[2];
+    const child = renderHook(() => useControl(control, 0));
+    child.rerender();
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+});

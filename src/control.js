@@ -37,6 +37,29 @@ function useDevCheckControl(control) {
   }
 }
 
+// Switching controlled <-> uncontrolled mid-lifetime is an antipattern: the
+// state's owner can never change, and both code paths call a different set of
+// hooks, so React will also complain about the hook order. Detect it early and
+// warn with the real cause. Must stay the first hook in useControl so its ref
+// is read reliably on the render where the switch happens.
+function useDevCheckControlledShape(control) {
+  if (__DEV__) {
+    const shape = (c) =>
+      isControl(c) ? 'controlled (a control)' : 'uncontrolled (a plain value)';
+    const prevShapeRef = useRef(shape(control));
+    const current = shape(control);
+    if (current !== prevShapeRef.current) {
+      console.warn(
+        `Warning: useControl is switching from ${prevShapeRef.current} to ${current}. ` +
+          'Switching between controlled and uncontrolled is not supported — ' +
+          'a component must keep the same mode for its lifetime. ' +
+          'Check the controlOrInitial prop: it changed between a control and a plain value.'
+      );
+      prevShapeRef.current = current;
+    }
+  }
+}
+
 function useDevSetId(control) {
   if (__DEV__) {
     const uniqueId = useRef(Symbol('unique id')).current;
@@ -58,6 +81,7 @@ export function useControl(controlOrInitial, maybeInitial) {
   const [control, initial] = isControl(controlOrInitial)
     ? [controlOrInitial, maybeInitial]
     : [null, controlOrInitial === undefined ? maybeInitial : controlOrInitial];
+  useDevCheckControlledShape(control);
   // 上层组件创建了状态，直接使用
   if (control?.state) {
     const ctrl = useNewControl(control);

@@ -9,9 +9,18 @@ export function mapSetter(fn) {
   ];
 }
 
+// `watch` must NOT be built on `mapSetter`: a side effect inside the state
+// updater makes the updater impure, and React may double-invoke updaters
+// (StrictMode, interrupted renders) — duplicating the side effect. Instead the
+// setter wrapper calls `setState` with the untouched action and fires
+// `onChange` outside the updater. For functional updates, `onChange` receives
+// the value projected from the latest state seen by this layer.
 export function watch(onChange) {
-  return mapSetter((v) => {
-    onChange(v);
-    return v;
-  });
+  return ([state, setState]) => [
+    state,
+    (s) => {
+      setState(s);
+      onChange(typeof s === 'function' ? s(state) : s);
+    }
+  ];
 }

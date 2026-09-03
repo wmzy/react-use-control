@@ -230,7 +230,7 @@ describe('watch — StrictMode behavior', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
-  it('watch with updater function: onChange call count under StrictMode', () => {
+  it('watch with updater function: onChange called with correct value under StrictMode', () => {
     const onChange = vi.fn();
 
     const {result: parentResult} = renderHook(
@@ -257,5 +257,60 @@ describe('watch — StrictMode behavior', () => {
 
     expect(childResult.current.value).toBe(10);
     expect(onChange).toHaveBeenCalledWith(10);
+    // the updater handed to setState stays pure — StrictMode double-invokes
+    // it without duplicating the side effect
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('watch — side effect outside the updater', () => {
+  it('onChange fires exactly once even when the updater is double-invoked', () => {
+    const onChange = vi.fn();
+    const rawSetState = vi.fn();
+    const [, watchedSet] = watch(onChange)([5, rawSetState]);
+
+    watchedSet((prev) => prev + 10);
+
+    // React may double-invoke the updater it received (StrictMode,
+    // interrupted renders) — the updater must stay pure
+    const updater = rawSetState.mock.calls[0][0];
+    expect(typeof updater).toBe('function');
+    updater(5);
+    updater(5);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(15);
+  });
+
+  it('onChange receives the projected value for functional updates', () => {
+    const onChange = vi.fn();
+    const rawSetState = vi.fn();
+    const [state, watchedSet] = watch(onChange)([5, rawSetState]);
+    expect(state).toBe(5);
+
+    watchedSet((prev) => prev * 2);
+
+    expect(rawSetState).toHaveBeenCalledTimes(1);
+    // the action passes through untouched — transforms stay lazy
+    expect(rawSetState.mock.calls[0][0]).toBeTypeOf('function');
+    expect(onChange).toHaveBeenCalledWith(10);
+  });
+
+  it('watch above mapSetter: onChange sees the caller-facing value, transform still applies', () => {
+    const onChange = vi.fn();
+    const rawSetState = vi.fn((action) =>
+      typeof action === 'function' ? action(0) : action
+    );
+    // watch layered above mapSetter, like the README composition
+    const interceptor = (state) =>
+      watch(onChange)(mapSetter((v) => v * 2)(state));
+    const [, outerSet] = interceptor([0, rawSetState]);
+
+    outerSet(21);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(21);
+    // the raw state still receives the transformed value
+    expect(rawSetState).toHaveLastReturnedWith(42);
   });
 });

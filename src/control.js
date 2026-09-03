@@ -1,9 +1,14 @@
 import {useState, useRef, useMemo} from 'react';
 
-const isControlSymbol = Symbol('is control');
+// A string brand, not a module-local Symbol: when the library is bundled
+// twice (common in monorepos), module-local Symbols differ per copy and
+// isControl would misjudge controls created by the other copy. A shared
+// string key is copy-independent; Symbol.toStringTag above stays for display.
+const CONTROL_BRAND = '@@use-control';
+
 const base = {
   useState,
-  [isControlSymbol]: true,
+  [CONTROL_BRAND]: true,
   get [Symbol.toStringTag]() {
     return 'Control';
   }
@@ -17,7 +22,7 @@ export function isControl(maybeControl) {
   return Boolean(
     maybeControl &&
     typeof maybeControl === 'object' &&
-    maybeControl[isControlSymbol]
+    maybeControl[CONTROL_BRAND]
   );
 }
 

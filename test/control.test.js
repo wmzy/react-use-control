@@ -403,3 +403,42 @@ describe('useControl — dev warning on controlled/uncontrolled switch', () => {
     warnSpy.mockRestore();
   });
 });
+
+describe('isControl — dual package instance (monorepo double-bundle)', () => {
+  it('recognizes controls created by another copy of the library', async () => {
+    // distinct query strings resolve to two separate module instances,
+    // simulating the library bundled twice in one app
+    const copyA = await import('../src/control?copyA');
+    const copyB = await import('../src/control?copyB');
+
+    // self-check: the two imports really are distinct module instances
+    expect(copyA.isControl).not.toBe(copyB.isControl);
+
+    const foreignControl = renderHook(() => copyA.useControl(5)).result
+      .current[2];
+
+    expect(copyB.isControl(foreignControl)).toBe(true);
+    expect(copyA.isControl(foreignControl)).toBe(true);
+    expect(copyB.isControl({})).toBe(false);
+    expect(copyB.isControl(5)).toBe(false);
+  });
+
+  it('useControl adopts a control created by another copy', async () => {
+    const copyA = await import('../src/control?copyA');
+    const copyB = await import('../src/control?copyB');
+
+    const parent = renderHook(() => copyA.useControl(7)).result;
+    const child = renderHook(() => copyB.useControl(parent.current[2], 99));
+
+    // controlled — 99 ignored, the state owned by copy A is adopted
+    expect(child.result.current[0]).toBe(7);
+
+    act(() => {
+      child.result.current[1](11);
+    });
+    child.rerender();
+
+    expect(child.result.current[0]).toBe(11);
+    expect(parent.current[0]).toBe(11);
+  });
+});

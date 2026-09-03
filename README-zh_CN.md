@@ -110,6 +110,14 @@ function App() {
 因此数据源始终只有一个，由第一个需要该状态的组件持有。无需写同步代码——
 因为永远不会出现两份拷贝。
 
+### 默认值只读取一次
+
+`useControl(5)` 的含义是"5 是初始值"，而不是"值是 5"。如果默认值在后续渲染中变化——
+`useControl(5)` 变成 `useControl(7)`——变化会被**忽略**，状态保持当前值。这与 React
+`useState` 挂载后的行为、Chakra UI 的 `defaultValue` 语义一致，且是刻意为之：重新读取
+默认值会重新引入第二个数据源——恰恰是这个库要消除的东西。要改变值，请调用 setter，
+或让父组件持有状态并传入 control。
+
 ### 它不是什么
 
 | 问题 | 答案 |
@@ -138,7 +146,8 @@ function useControl<S>(
 
 - `controlOrInitial` — 来自父组件的 control，**或**一个初始值（单参数形式），
   **或** `null`/`undefined` 表示非受控模式。
-- `initial` — 兜底初始值，仅当第一个参数不是 control 时生效。
+- `initial` — 兜底初始值，仅当第一个参数不是 control 时生效。只在首次渲染时读取——
+  默认值的后续变化会被忽略（见[默认值只读取一次](#默认值只读取一次)）。
 - 返回 `[value, setValue, control]` —— `useState` 的形状，外加用于向下传递的 control。
 
 第一个参数也接受两者的**联合类型** —— `useControl(controlOrInitial: Control<S> | S | undefined, initial?)` ——

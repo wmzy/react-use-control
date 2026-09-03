@@ -111,6 +111,15 @@ When a component calls `useControl(prop, initial)`:
 So there is exactly one source of truth, hosted by the first component that needed the
 state. There is no synchronization to write, because there are never two copies.
 
+### Default values are read once
+
+`useControl(5)` means "5 is the initial value", not "the value is 5". If the default
+changes on later renders — `useControl(5)` becoming `useControl(7)` — the change is
+**ignored**, and the state keeps whatever it holds. This is the same semantics as React's
+`useState` after mount and Chakra UI's `defaultValue`, and it is deliberate: re-reading
+defaults would reintroduce a second source of truth — the very thing the library removes.
+To change the value, call the setter, or let a parent own the state and pass a control.
+
 ### What it is not
 
 | Question | Answer |
@@ -138,7 +147,7 @@ function useControl<S>(
 ```
 
 - `controlOrInitial` — a control from a parent, **or** an initial value (the single-argument form), **or** `null`/`undefined` for uncontrolled mode.
-- `initial` — fallback initial value, used only when the first argument is not a control.
+- `initial` — fallback initial value, used only when the first argument is not a control. Read on the first render only — later changes to a default are ignored ([Default values are read once](#default-values-are-read-once)).
 - Returns `[value, setValue, control]` — `useState`'s shape plus the control to pass down.
 
 The first argument also accepts a **union** of both — `useControl(controlOrInitial: Control<S> | S | undefined, initial?)` — for props that carry either a control or a plain value. TypeScript infers `S` from either member with no casts; at runtime the non-control member simply acts as the initial value, while a control member wins and `initial` is ignored, exactly as above.

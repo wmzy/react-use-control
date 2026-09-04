@@ -352,6 +352,10 @@ describe('useControl — dev warning on controlled/uncontrolled switch', () => {
     expect(warnSpy.mock.calls[0][0]).toMatch(
       /switching from uncontrolled \(a plain value\) to controlled \(a control\)/
     );
+    // DEV diagnostics append the component stack pointing at the component
+    // that called useControl (renderHook's TestComponent here)
+    expect(warnSpy.mock.calls[0][0]).toMatch(/Component stack:/);
+    expect(warnSpy.mock.calls[0][0]).toMatch(/at TestComponent/);
     warnSpy.mockRestore();
     errorSpy.mockRestore();
   });
@@ -377,6 +381,8 @@ describe('useControl — dev warning on controlled/uncontrolled switch', () => {
     expect(warnSpy.mock.calls[0][0]).toMatch(
       /switching from controlled \(a control\) to uncontrolled \(a plain value\)/
     );
+    expect(warnSpy.mock.calls[0][0]).toMatch(/Component stack:/);
+    expect(warnSpy.mock.calls[0][0]).toMatch(/at TestComponent/);
     warnSpy.mockRestore();
     errorSpy.mockRestore();
   });

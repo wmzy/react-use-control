@@ -89,9 +89,18 @@ describe('dev check', () => {
 
     rerender();
 
-    expect(() => rerender({useControl1: false})).toThrow(
-      /Should not call with different control/
-    );
+    let error;
+    try {
+      rerender({useControl1: false});
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error.message).toMatch(/Should not call with different control/);
+    // DEV diagnostics append the component stack so the offending
+    // component (renderHook's TestComponent here) is directly locatable
+    expect(error.message).toMatch(/Component stack:/);
+    expect(error.message).toMatch(/at TestComponent/);
 
     spy.mockRestore();
   });

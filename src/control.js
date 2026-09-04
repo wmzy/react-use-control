@@ -1,4 +1,5 @@
 import {useState, useRef, useMemo} from 'react';
+import * as React from 'react';
 
 // A string brand, not a module-local Symbol: when the library is bundled
 // twice (common in monorepos), module-local Symbols differ per copy and
@@ -28,6 +29,47 @@ export function isControl(maybeControl) {
 
 const id = Symbol('id');
 
+// DEV diagnostics: append the React component stack to guard messages so the
+// user lands on the offending component directly instead of grepping for the
+// message text. React 19 DEV exposes captureOwnerStack() — component frames
+// with source positions. Older Reacts have no equivalent API; fall back to
+// the current owner fiber's ancestor chain (component names only), which is
+// all that is needed to identify the component. Returns '' when nothing is
+// available (outside a render, SSR, or a production react build), leaving the
+// original message untouched. Only ever called from __DEV__ blocks, so this
+// whole section is tree-shaken from production builds.
+function devComponentStack() {
+  if (typeof React.captureOwnerStack === 'function') {
+    const stack = React.captureOwnerStack();
+    // Owner stacks include only the components that *created* the elements —
+    // for nested offenders the innermost frame is the JSX creation site of
+    // the offending component, which is React's own convention for warnings.
+    if (stack) return stack.trim();
+  }
+  const internals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+  const lines = [];
+  for (
+    let fiber = internals?.ReactCurrentOwner?.current;
+    fiber;
+    fiber = fiber.return
+  ) {
+    const {type} = fiber;
+    if (!type || typeof type === 'string') continue; // host components are noise
+    const name =
+      type.displayName ||
+      type.name ||
+      (type.type && (type.type.displayName || type.type.name)) || // memo()
+      (type.render && (type.render.displayName || type.render.name)); // forwardRef()
+    if (name) lines.push(`at ${name}`);
+  }
+  return lines.join('\n');
+}
+
+function withDevComponentStack(message) {
+  const stack = devComponentStack();
+  return stack ? `${message}\n\nComponent stack:\n${stack}` : message;
+}
+
 function useDevCheckControl(control) {
   if (__DEV__) {
     const preRef = useRef(control);
@@ -37,7 +79,9 @@ function useDevCheckControl(control) {
       return a[id] !== b[id];
     };
     if (notSame(control, preRef.current)) {
-      throw new Error('Should not call with different control');
+      throw new Error(
+        withDevComponentStack('Should not call with different control')
+      );
     }
   }
 }
@@ -55,10 +99,12 @@ function useDevCheckControlledShape(control) {
     const current = shape(control);
     if (current !== prevShapeRef.current) {
       console.warn(
-        `Warning: useControl is switching from ${prevShapeRef.current} to ${current}. ` +
-          'Switching between controlled and uncontrolled is not supported — ' +
-          'a component must keep the same mode for its lifetime. ' +
-          'Check the controlOrInitial prop: it changed between a control and a plain value.'
+        withDevComponentStack(
+          `Warning: useControl is switching from ${prevShapeRef.current} to ${current}. ` +
+            'Switching between controlled and uncontrolled is not supported — ' +
+            'a component must keep the same mode for its lifetime. ' +
+            'Check the controlOrInitial prop: it changed between a control and a plain value.'
+        )
       );
       prevShapeRef.current = current;
     }
